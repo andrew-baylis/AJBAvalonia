@@ -1,0 +1,110 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ab="https://github.com/ajbavalonia">
+    <!--  Add Resources Here  -->
+    <ControlTheme x:Key="{x:Type ab:SideBySideListSelect}" TargetType="{x:Type ab:SideBySideListSelect}">
+        <!--  Set Defaults  -->
+        <Setter Property="HeaderFontStyle" Value="Normal" />
+        <Setter Property="HeaderFontWeight" Value="Normal" />
+        <Setter Property="ListSelectionMode" Value="Multiple" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border
+                        x:Name="PART_Border"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                        <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                FontStyle="{TemplateBinding HeaderFontStyle}"
+                                FontWeight="{TemplateBinding HeaderFontWeight}"
+                                Text="{TemplateBinding LeftHeaderText}" />
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                FontStyle="{TemplateBinding HeaderFontStyle}"
+                                FontWeight="{TemplateBinding HeaderFontWeight}"
+                                Text="{TemplateBinding RightHeaderText}" />
+                            <StackPanel
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Orientation="Vertical">
+                                <Button
+                                    x:Name="btnMoveRight"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="2,5"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="0">
+                                    &gt;
+                                </Button>
+                                <Button
+                                    x:Name="btnMoveAllRight"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="2,5"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="0">
+                                    &gt;&gt;
+                                </Button>
+                                <Button
+                                    x:Name="btnMoveLeft"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="2,20,2,5"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="0">
+                                    &lt;
+                                </Button>
+                                <Button
+                                    x:Name="btnMoveAllLeft"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="2,5"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="0">
+                                    &lt;&lt;
+                                </Button>
+                            </StackPanel>
+                            <ListBox
+                                x:Name="LeftList"
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                BorderBrush="{TemplateBinding ListBoxBorderBrush}"
+                                BorderThickness="{TemplateBinding ListBoxBorderThickness}"
+                                SelectionMode="Multiple" />
+                            <ListBox
+                                x:Name="RightList"
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                BorderBrush="{TemplateBinding ListBoxBorderBrush}"
+                                BorderThickness="{TemplateBinding ListBoxBorderThickness}"
+                                SelectionMode="Multiple" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

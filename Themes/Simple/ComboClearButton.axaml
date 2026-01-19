@@ -1,0 +1,63 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ab="https://github.com/ajbavalonia">
+    <!--  Add Resources Here  -->
+    <ControlTheme x:Key="{x:Type ab:ComboClearButton}" TargetType="ab:ComboClearButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="RenderTransform" Value="none" />
+        <Setter Property="ClearPathSize" Value="10" />
+        <Setter Property="Width" Value="{Binding $self.Bounds.Height}" />
+        <Setter Property="DisabledForeground" Value="{DynamicResource ButtonForegroundDisabled}" />
+        <Setter Property="Padding" Value="{DynamicResource ButtonPadding}" />
+        <Setter Property="PointerOverBackground" Value="{DynamicResource ButtonBackgroundPointerOver}" />
+        <Setter Property="PressedBackground" Value="{DynamicResource TextControlButtonBackgroundPressed}" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.075" />
+            </Transitions>
+        </Setter>
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    x:Name="PART_Background"
+                    Padding="{TemplateBinding Padding}"
+                    Background="{TemplateBinding Background}">
+                    <PathIcon
+                        x:Name="PART_ClearIconPath"
+                        Width="{TemplateBinding ClearPathSize}"
+                        Height="{TemplateBinding ClearPathSize}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Data="{StaticResource ComboBoxClearButtonData}"
+                        Foreground="{TemplateBinding Foreground}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="{TemplateBinding PointerOverBackground}" />
+        </Style>
+
+        <Style Selector="^:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.98)" />
+            <Style Selector="^:pressed  /template/ Border#PART_Background">
+                <Setter Property="Background" Value="{TemplateBinding PressedBackground}" />
+            </Style>
+        </Style>
+
+
+        <Style Selector="^:disabled">
+            <Style Selector="^ /template/ PathIcon#PART_ClearIconPath">
+                <Setter Property="Foreground" Value="{TemplateBinding DisabledForeground}" />
+            </Style>
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

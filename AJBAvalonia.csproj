@@ -1,0 +1,73 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Version>3.5.1</Version>
+        <LangVersion>latest</LangVersion>
+        <Title>Avalonia Controls - AJB</Title>
+        <Description>Some controls for Avalonia: GroupBox, ComboBoxEx, TextBoxEx, RadioGroup, RadioCheckEnumGroup, SideBySideList and DropControl</Description>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AvaloniaXaml Remove="CustomTypeObjects\**" />
+        <AvaloniaXaml Remove="TestAvControls.Desktop\**" />
+        <AvaloniaXaml Remove="TestAvControls\**" />
+        <Compile Remove="CustomTypeObjects\**" />
+        <Compile Remove="TestAvControls.Desktop\**" />
+        <Compile Remove="TestAvControls\**" />
+        <EmbeddedResource Remove="CustomTypeObjects\**" />
+        <EmbeddedResource Remove="TestAvControls.Desktop\**" />
+        <EmbeddedResource Remove="TestAvControls\**" />
+        <None Remove="CustomTypeObjects\**" />
+        <None Remove="TestAvControls.Desktop\**" />
+        <None Remove="TestAvControls\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AvaloniaXaml Remove="Themes\Fluent\EditWithDropControlStyles.axaml" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="Markup\CustomTypeBindingExtension.cs" />
+        <Compile Remove="TooltipExtension.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="AJBAvaloniaFluent.xaml" />
+        <None Remove="AJBAvaloniaSimple.xaml" />
+        <None Remove="AvaloniaControls_AJB.7z" />
+        <None Remove="Images\folder_open24.png" />
+        <None Remove="Images\search_24.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="AJBAvaloniaSimple.xaml" />
+        <AvaloniaResource Include="AJBAvaloniaFluent.xaml" />
+        <AvaloniaResource Include="Images\folder_open24.png" />
+        <AvaloniaResource Include="Images\search_24.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.3.11" />
+        <PackageReference Include="Avalonia.Skia" Version="11.3.11" />
+        <PackageReference Include="Xaml.Behaviors.Interactivity" Version="11.3.9.3" />
+    </ItemGroup>
+
+    <Target Name="CopyPackage" AfterTargets="Pack">
+        <Copy SourceFiles="$(PackageOutputPath)$(PackageId).$(PackageVersion).nupkg" DestinationFolder="F:\Visual Studio Projects\ComponentLibraries\" />
+    </Target>
+
+    <ItemGroup>
+        <UpToDateCheckInput Remove="Themes\Fluent\TextBoxEx.axaml" />
+    </ItemGroup>
+
+    <ItemGroup>
+	    <None Include="README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+</Project>

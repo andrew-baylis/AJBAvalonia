@@ -1,0 +1,20 @@
+<Application
+    x:Class="TestAvControls.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ab="https://github.com/ajbavalonia"
+    RequestedThemeVariant="Default">
+    <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
+
+    <Application.Styles>
+        <FluentTheme />
+        <ab:AJBControlsSimple />
+    </Application.Styles>
+    <Application.Resources>
+        <ResourceDictionary>
+            <ab:DynamicBrush x:Key="backColor" Color="{DynamicResource SystemAccentColorLight3}" />
+            <SolidColorBrush x:Key="brush" Color="{ab:DynamicColor Color={DynamicResource SystemAccentColorLight3}, LuminancePercent=-50}" />
+            <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="{ab:DynamicColor Color={DynamicResource SystemAccentColorLight3}, LuminancePercent=-50}" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

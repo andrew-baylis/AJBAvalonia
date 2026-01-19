@@ -1,0 +1,69 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="https://github.com/ajbavalonia">
+    <!--  Add Resources Here  -->
+    <ControlTheme x:Key="{x:Type controls:EditWithDropControlBase}" TargetType="{x:Type controls:EditWithDropControlBase}">
+        <!--  Set Defaults  -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border
+                        x:Name="PART_Border"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Border
+                                x:Name="PART_displayBorder"
+                                Grid.Column="0"
+                                MinWidth="{DynamicResource TextControlThemeMinWidth}"
+                                MinHeight="{DynamicResource TextControlThemeMinHeight}"
+                                Margin="2"
+                                Padding="{DynamicResource TextControlThemePadding}"
+                                BorderBrush="{DynamicResource TextControlBorderBrush}"
+                                BorderThickness="{DynamicResource TextControlBorderThemeThickness}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}">
+                                <TextBlock
+                                    x:Name="PART_textDisplay"
+                                    MinHeight=""
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Center"
+                                    FontFamily="{TemplateBinding FontFamily}"
+                                    FontSize="{TemplateBinding FontSize}"
+                                    FontStretch="{TemplateBinding FontStretch}"
+                                    FontStyle="{TemplateBinding FontStyle}"
+                                    FontWeight="{TemplateBinding FontWeight}"
+                                    Foreground="{TemplateBinding Foreground}"
+                                    IsVisible="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=EditReadOnly}"
+                                    Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=EditorValue}" />
+                            </Border>
+                            <controls:TextBoxEx
+                                x:Name="PART_textEdit"
+                                Grid.Column="0"
+                                Margin="2"
+                                HorizontalAlignment="Stretch"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                AllowClear="{TemplateBinding AllowClear}"
+                                FontFamily="{TemplateBinding FontFamily}"
+                                FontSize="{TemplateBinding FontSize}"
+                                FontStretch="{TemplateBinding FontStretch}"
+                                FontStyle="{TemplateBinding FontStyle}"
+                                FontWeight="{TemplateBinding FontWeight}"
+                                Foreground="{TemplateBinding Foreground}"
+                                IsVisible="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=!EditReadOnly}"
+                                Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=EditorValue, Mode=TwoWay}" />
+                            <DropDownButton
+                                x:Name="PART_dropButton"
+                                Grid.Column="1"
+                                Margin="2"
+                                VerticalAlignment="Stretch" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

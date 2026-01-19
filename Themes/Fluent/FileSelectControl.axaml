@@ -1,0 +1,48 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ab="https://github.com/ajbavalonia">
+    <!--  Add Resources Here  -->
+    <ControlTheme x:Key="{x:Type ab:FileSelectControl}" TargetType="{x:Type ab:FileSelectControl}">
+        <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
+        <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Margin" Value="1" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <!--  Set Defaults  -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="Transparent"
+                    BorderThickness="0">
+                    <DockPanel LastChildFill="True">
+                        <Button
+                            x:Name="dropButton"
+                            Padding="4"
+                            Background="Transparent"
+                            DockPanel.Dock="Right">
+                            <ab:AutoGreyableImage
+                                Width="22"
+                                Height="22"
+                                Source="/Images/folder_open24.png" />
+                        </Button>
+                        <ab:TextBoxEx
+                            x:Name="fileNameEdit"
+                            Margin="2,2,0,2"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            AllowClear="True"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            IsReadOnly="True"
+                            Watermark="Select file name..." />
+                    </DockPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

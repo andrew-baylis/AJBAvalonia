@@ -1,0 +1,99 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:AJBAvalonia">
+
+    <Style Selector="controls|EditWithDropControl">
+        <!-- Set Defaults -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border x:Name="PART_Border"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <DockPanel LastChildFill="True">
+                            <DropDownButton x:Name="PART_dropButton" DockPanel.Dock="Right" VerticalAlignment="Stretch" />
+                            <TextBox x:Name="PART_textEdit" Margin="2"
+                                     IsReadOnly="{TemplateBinding EditReadOnly}"
+                                     FontFamily="{TemplateBinding FontFamily}"
+                                     FontSize="{TemplateBinding FontSize}"
+                                     FontStretch="{TemplateBinding FontStretch}"
+                                     FontStyle="{TemplateBinding FontStyle}"
+                                     FontWeight="{TemplateBinding FontWeight}"
+                                     Foreground="{TemplateBinding Foreground}"
+                                     Text="{Binding RelativeSource={RelativeSource TemplatedParent},Path=EditorValue, Mode=TwoWay}" />
+                        </DockPanel>
+                    </Border>
+                    <Popup x:Name="PART_popup"
+                           WindowManagerAddShadowHint="{TemplateBinding AddShadow}"
+                           PlacementTarget="PART_textEdit"
+                           IsLightDismissEnabled="True">
+                        <Border x:Name="PART_PopupBorder"
+                                Padding="{TemplateBinding PopupPadding}"
+                                BorderBrush="{TemplateBinding PopupBorderBrush}"
+                                Background="{TemplateBinding PopUpBackground}"
+                                BorderThickness="{TemplateBinding PopupBorderThickness}" />
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|EditWithDropCheckList">
+        <!-- Set Defaults -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <Border x:Name="PART_Border"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <DockPanel LastChildFill="True">
+                            <DropDownButton x:Name="PART_dropButton" DockPanel.Dock="Right" VerticalAlignment="Stretch" />
+                            <TextBox x:Name="PART_textEdit" Margin="2"
+                                     IsReadOnly="{TemplateBinding EditReadOnly}"
+                                     FontFamily="{TemplateBinding FontFamily}"
+                                     FontSize="{TemplateBinding FontSize}"
+                                     FontStretch="{TemplateBinding FontStretch}"
+                                     FontStyle="{TemplateBinding FontStyle}"
+                                     FontWeight="{TemplateBinding FontWeight}"
+                                     Foreground="{TemplateBinding Foreground}"
+                                     Text="{Binding RelativeSource={RelativeSource TemplatedParent},Path=EditorValue, Mode=TwoWay}" />
+                        </DockPanel>
+                    </Border>
+                    <Popup x:Name="PART_popup"
+                           WindowManagerAddShadowHint="{TemplateBinding AddShadow}"
+                           PlacementTarget="PART_textEdit"
+                           IsLightDismissEnabled="True">
+                        <Border x:Name="PART_PopupBorder"
+                                Padding="{TemplateBinding PopupPadding}"
+                                BorderBrush="{TemplateBinding PopupBorderBrush}"
+                                Background="{TemplateBinding PopUpBackground}"
+                                BorderThickness="{TemplateBinding PopupBorderThickness}">
+                            <ListBox x:Name="PART_listBox"
+                                     Background="{Binding $parent.Background}"
+                                     ItemsSource="{TemplateBinding ItemsSource}"
+                                     SelectionMode="Multiple">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel LastChildFill="True">
+                                            <CheckBox Margin="0,2,5,2"
+                                                      IsChecked="{Binding $parent[ListBoxItem].IsSelected}"
+                                                      DockPanel.Dock="Left" VerticalAlignment="Center"
+                                                      IsVisible="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=controls:EditWithDropCheckList},Path=ListBoxShowCheckBoxes}" />
+                                            <ContentPresenter Content="{Binding}" VerticalContentAlignment="Center" />
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

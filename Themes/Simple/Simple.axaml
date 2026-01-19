@@ -1,0 +1,17 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--  Controls  -->
+                <MergeResourceInclude Source="/Themes/Simple/ComboBoxEx.axaml" />
+                <MergeResourceInclude Source="/Themes/Simple/ComboClearButton.axaml" />
+                <MergeResourceInclude Source="/Themes/Simple/CheckComboBoxEx.axaml" />
+                <MergeResourceInclude Source="/Themes/Simple/EditWithDropControl.axaml" />
+                <MergeResourceInclude Source="/Themes/Simple/GroupBox.axaml" />
+                <MergeResourceInclude Source="/Themes/Simple/TextBoxEx.axaml" />
+                <MergeResourceInclude Source="/Themes/Simple/SideBySideListSelect.axaml" />
+                <MergeResourceInclude Source="/Themes/Simple/FileSelectControl.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+</Styles>
