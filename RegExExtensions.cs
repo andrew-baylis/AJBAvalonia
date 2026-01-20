@@ -81,4 +81,35 @@ public static class RegExExtensions
     }
 
     #endregion
+
+    #region Nested type: $extension
+
+    extension(string text)
+    {
+        #region Public Methods
+
+        public bool IsValidEmail()
+        {
+            return MatchEmail(text);
+        }
+
+        public bool IsValidTime12Hr()
+        {
+            return MatchTime12HrClock(text);
+        }
+
+        public bool IsValidTime24Hr()
+        {
+            return MatchTime24HrClock(text);
+        }
+
+        public bool IsValidUrl()
+        {
+            return MatchUrl(text);
+        }
+
+        #endregion
+    }
+
+    #endregion
 }
