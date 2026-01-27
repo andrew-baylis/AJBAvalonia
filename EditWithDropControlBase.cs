@@ -19,7 +19,7 @@ using Avalonia.Media;
 namespace AJBAvalonia;
 
 /// <summary>
-/// Base control providing an editor with a drop-down flyout.
+///     Base control providing an editor with a drop-down flyout.
 /// </summary>
 public abstract class EditWithDropControlBase : TemplatedControl
 {
@@ -29,8 +29,10 @@ public abstract class EditWithDropControlBase : TemplatedControl
 
     public static readonly StyledProperty<bool> AllowClearProperty = AvaloniaProperty.Register<EditWithDropControlBase, bool>(nameof(AllowClear), true);
 
-    public static readonly StyledProperty<bool> CloseDropDownOnClickOutsideProperty =
-        AvaloniaProperty.Register<EditWithDropControlBase, bool>(nameof(CloseDropDownOnClickOutside), true);
+    public static readonly DirectProperty<EditWithDropControlBase, bool> CloseDropDownOnClickOutsideProperty =
+        AvaloniaProperty.RegisterDirect<EditWithDropControlBase, bool>(nameof(CloseDropDownOnClickOutside),
+                                                                       o => o.CloseDropDownOnClickOutside,
+                                                                       (o, v) => o.CloseDropDownOnClickOutside = v);
 
     public static readonly StyledProperty<bool> ConstrainPopupWidthProperty = AvaloniaProperty.Register<EditWithDropControlBase, bool>(nameof(ConstrainPopupWidth));
 
@@ -51,7 +53,8 @@ public abstract class EditWithDropControlBase : TemplatedControl
     public static readonly DirectProperty<EditWithDropControlBase, ComboGlyphEnum> GlyphTypeProperty =
         AvaloniaProperty.RegisterDirect<EditWithDropControlBase, ComboGlyphEnum>(nameof(GlyphType), o => o.GlyphType, (o, v) => o.GlyphType = v);
 
-    public static readonly StyledProperty<IBrush?> PopUpBackgroundProperty = AvaloniaProperty.Register<EditWithDropControlBase, IBrush?>(nameof(PopUpBackground),Brushes.WhiteSmoke);
+    public static readonly StyledProperty<IBrush?> PopUpBackgroundProperty =
+        AvaloniaProperty.Register<EditWithDropControlBase, IBrush?>(nameof(PopUpBackground), Brushes.WhiteSmoke);
 
     public static readonly StyledProperty<IBrush?> PopupBorderBrushProperty = AvaloniaProperty.Register<EditWithDropControlBase, IBrush?>(nameof(PopupBorderBrush));
 
@@ -79,6 +82,8 @@ public abstract class EditWithDropControlBase : TemplatedControl
     private readonly Popup _dropPopup;
     private readonly Border _popBorder;
 
+    private bool _closeDropDownOnClickOutside = true;
+
     private Border? _displayBorder;
 
     private DropDownButton? _dropButton;
@@ -100,17 +105,15 @@ public abstract class EditWithDropControlBase : TemplatedControl
         _dropPopup = new Popup();
         _popBorder = new Border();
         _dropPopup.Child = _popBorder;
-        _dropPopup.IsLightDismissEnabled = true;
         _dropPopup.Opened += DropPopupOnOpened;
         _dropPopup.Closed += DropPopupOnClosed;
-        _dropPopup.PointerCaptureLost += DropPopupOnPointerCaptureLost;
         _dropPopup.Closed += DropPopupOnClosed;
     }
 
     #region Properties
 
     /// <summary>
-    /// Gets or sets whether the popup should add a drop shadow.
+    ///     Gets or sets whether the popup should add a drop shadow.
     /// </summary>
     public bool AddShadow
     {
@@ -119,7 +122,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets whether the embedded editor allows clearing its text.
+    ///     Gets or sets whether the embedded editor allows clearing its text.
     /// </summary>
     public bool AllowClear
     {
@@ -128,16 +131,16 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets whether clicking outside closes the popup when not light-dismiss.
+    ///     Gets or sets whether clicking outside closes the popup when not light-dismiss.
     /// </summary>
     public bool CloseDropDownOnClickOutside
     {
-        get => GetValue(CloseDropDownOnClickOutsideProperty);
-        set => SetValue(CloseDropDownOnClickOutsideProperty, value);
+        get => _closeDropDownOnClickOutside;
+        set => SetAndRaise(CloseDropDownOnClickOutsideProperty, ref _closeDropDownOnClickOutside, value);
     }
 
     /// <summary>
-    /// Gets or sets whether the popup width should be constrained to the control width.
+    ///     Gets or sets whether the popup width should be constrained to the control width.
     /// </summary>
     public bool ConstrainPopupWidth
     {
@@ -146,7 +149,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the geometry used for the drop glyph icon.
+    ///     Gets or sets the geometry used for the drop glyph icon.
     /// </summary>
     public Geometry? DropGlyphPath
     {
@@ -159,7 +162,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the size of the drop glyph icon.
+    ///     Gets or sets the size of the drop glyph icon.
     /// </summary>
     public double? DropGlyphSize
     {
@@ -172,7 +175,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the editor value bound to the embedded editor.
+    ///     Gets or sets the editor value bound to the embedded editor.
     /// </summary>
     public string? EditorValue
     {
@@ -181,7 +184,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets whether the embedded editor is read-only.
+    ///     Gets or sets whether the embedded editor is read-only.
     /// </summary>
     public bool EditReadOnly
     {
@@ -190,7 +193,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the placement mode used for the popup.
+    ///     Gets or sets the placement mode used for the popup.
     /// </summary>
     public PlacementMode FlyoutPlacement
     {
@@ -199,7 +202,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the glyph type used for the drop icon.
+    ///     Gets or sets the glyph type used for the drop icon.
     /// </summary>
     public ComboGlyphEnum GlyphType
     {
@@ -235,7 +238,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the popup background brush.
+    ///     Gets or sets the popup background brush.
     /// </summary>
     public IBrush? PopUpBackground
     {
@@ -244,7 +247,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the popup border brush.
+    ///     Gets or sets the popup border brush.
     /// </summary>
     public IBrush? PopupBorderBrush
     {
@@ -253,7 +256,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the popup border thickness.
+    ///     Gets or sets the popup border thickness.
     /// </summary>
     public Thickness PopupBorderThickness
     {
@@ -262,7 +265,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets padding inside the popup border.
+    ///     Gets or sets padding inside the popup border.
     /// </summary>
     public Thickness PopupPadding
     {
@@ -271,7 +274,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the vertical alignment for the control's content.
+    ///     Gets or sets the vertical alignment for the control's content.
     /// </summary>
     public VerticalAlignment VerticalContentAlignment
     {
@@ -280,7 +283,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Gets or sets the control used as the internal content of the popup.
+    ///     Gets or sets the control used as the internal content of the popup.
     /// </summary>
     protected Control? InternalDropControl
     {
@@ -297,26 +300,39 @@ public abstract class EditWithDropControlBase : TemplatedControl
     #region Events
 
     /// <summary>
-    /// Raised when the embedded editor is cleared.
+    ///     Raised when the embedded editor is cleared.
     /// </summary>
     public event EventHandler? OnClearEvent;
 
     /// <summary>
-    /// Raised when the popup is closed.
+    ///     Raised when the popup is closed.
     /// </summary>
     public event EventHandler? OnPopupClose;
 
     /// <summary>
-    /// Raised when the popup is opened.
+    ///     Raised when the popup is opened.
     /// </summary>
     public event EventHandler? OnPopupOpen;
 
     #endregion
 
-    #region Override Methods
+    #region Public Methods
 
     /// <summary>
-    /// Applies the control template and initializes named template parts.
+    ///     Closes the drop-down popup.
+    /// </summary>
+    public void CloseDropDown()
+    {
+        _pointer?.Capture(null);
+        _dropPopup.IsOpen = false;
+    }
+
+    #endregion
+
+    #region Protected Methods
+
+    /// <summary>
+    ///     Applies the control template and initializes named template parts.
     /// </summary>
     /// <param name="e">Template applied arguments.</param>
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -330,7 +346,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
             _editBox.OnClearEvent += EditBoxOnOnClearEvent;
             _editBox.IsReadOnly = EditReadOnly;
 
-            _popBorder.Background = PopUpBackground??Brushes.WhiteSmoke;
+            _popBorder.Background = PopUpBackground ?? Brushes.WhiteSmoke;
             _popBorder.BorderBrush = PopupBorderBrush;
             _popBorder.BorderThickness = PopupBorderThickness;
             _popBorder.Padding = PopupPadding;
@@ -351,7 +367,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Handles control loaded event to prepare glyph icon.
+    ///     Handles control loaded event to prepare glyph icon.
     /// </summary>
     /// <param name="e">Routed event args.</param>
     protected override void OnLoaded(RoutedEventArgs e)
@@ -365,7 +381,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
     }
 
     /// <summary>
-    /// Responds to property changes to update popup or editor state.
+    ///     Responds to property changes to update popup or editor state.
     /// </summary>
     /// <param name="change">Change information.</param>
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -418,19 +434,6 @@ public abstract class EditWithDropControlBase : TemplatedControl
 
     #endregion
 
-    #region Public Methods
-
-    /// <summary>
-    /// Closes the drop-down popup.
-    /// </summary>
-    public void CloseDropDown()
-    {
-        _pointer?.Capture(null);
-        _dropPopup.IsOpen = false;
-    }
-
-    #endregion
-
     #region Private Methods
 
     private void DoOpenFlyout()
@@ -464,10 +467,6 @@ public abstract class EditWithDropControlBase : TemplatedControl
     private void DropDownButton_OnClick(object? sender, RoutedEventArgs e)
     {
         DoOpenFlyout();
-        if (!_dropPopup.IsLightDismissEnabled)
-        {
-            _pointer?.Capture(_dropPopup);
-        }
     }
 
     private async void DropPopupOnClosed(object? sender, EventArgs e)
@@ -478,14 +477,6 @@ public abstract class EditWithDropControlBase : TemplatedControl
     private void DropPopupOnOpened(object? sender, EventArgs e)
     {
         OnPopupOpen?.Invoke(this, e);
-    }
-
-    private void DropPopupOnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
-    {
-        if (_dropPopup is {IsOpen: true, IsLightDismissEnabled: false})
-        {
-            e.Pointer.Capture(_dropPopup); //clumsy fix to keep capture in case of click outside dropdown
-        }
     }
 
     private void EditBoxOnOnClearEvent(object? sender, EventArgs e)
