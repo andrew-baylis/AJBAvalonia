@@ -264,6 +264,7 @@ public class ComboBoxEx : ComboBox
         else if (change.Property == ItemsSourceProperty)
         {
             UpdateItemsSource(change.OldValue, change.NewValue);
+            base.OnPropertyChanged(change);
         }
 
         base.OnPropertyChanged(change);
@@ -414,16 +415,22 @@ public class ComboBoxEx : ComboBox
 
     private void OnItemsSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        var obj = SelectedValue;
-        SelectedValue = null;
-        SelectedValue = obj; //ensure changes to selected value get properly propagated
+        if (Items.Count > 0)
+        {
+            var obj = SelectedValue;
+            SelectedValue = null;
+            SelectedValue = obj; //ensure changes to selected value get properly propagated
+        }
     }
 
     private void OnItemsSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        var obj = SelectedValue;
-        SelectedValue = null;
-        SelectedValue = obj; //ensure changes to selected value get properly propagated
+        if (Items.Count > 0)
+        {
+            var obj = SelectedValue;
+            SelectedValue = null;
+            SelectedValue = obj; //ensure changes to selected value get properly propagated
+        }
     }
 
     private void StartTextSearchTimer()
