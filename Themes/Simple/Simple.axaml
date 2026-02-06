@@ -11,6 +11,7 @@
                 <MergeResourceInclude Source="/Themes/Simple/TextBoxEx.axaml" />
                 <MergeResourceInclude Source="/Themes/Simple/SideBySideListSelect.axaml" />
                 <MergeResourceInclude Source="/Themes/Simple/FileSelectControl.axaml" />
+                <MergeResourceInclude Source="/Themes/Simple/WindowEx.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Styles.Resources>

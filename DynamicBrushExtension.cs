@@ -5,6 +5,7 @@
 #region using
 
 using Avalonia;
+using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 
@@ -37,7 +38,7 @@ public class DynamicBrushExtension : AvaloniaObject
 
     #region Fields
 
-    private IBrush _modifiedBrush = new SolidColorBrush();
+    private IBrush _modifiedBrush = new SolidColorBrush(Colors.Yellow);
 
     #endregion
 
@@ -92,10 +93,10 @@ public class DynamicBrushExtension : AvaloniaObject
 
     #region Public Methods
 
-    public IBrush ProvideValue(IServiceProvider serviceProvider)
+    public IBinding ProvideValue(IServiceProvider serviceProvider)
     {
         //return this.ToBinding();
-        return ModifiedBrush;
+        return new Binding(nameof(ModifiedBrush)) {Source = this};
     }
 
     #endregion

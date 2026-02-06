@@ -16,6 +16,20 @@ public static class SystemColorExtension
 {
     #region Static Methods
 
+    public static void CheckAndSetColor(string key, string keySource, double luminanceValue)
+    {
+        object? obj = null;
+        Application.Current?.TryFindResource(keySource, out obj);
+        if (obj is Color systemColor)
+        {
+            var newSourceColor = MakeNewColor(systemColor, luminanceValue);
+            if (Application.Current?.Resources.ContainsKey(key) == true)
+            {
+                Application.Current.Resources[key] = newSourceColor;
+            }
+        }
+    }
+
     public static double GetColorLuminance(this Color color)
     {
         //if RsRGB <= 0.03928 then R = RsRGB/12.92 else R = ((RsRGB+0.055)/1.055) ^ 2.4
@@ -36,23 +50,15 @@ public static class SystemColorExtension
         return obj is Color color ? new SolidColorBrush(color) : obj as SolidColorBrush;
     }
 
-    public static Color GetTextContrastColor(Color? color)
+    public static SolidColorBrush GetTextContrastBrush(this ISolidColorBrush background)
     {
-        return color?.GetColorLuminance() < 0.179 ? Colors.White : Colors.Black;
+        var contrastColor = background.Color.GetTextContrastColor();
+        return new SolidColorBrush(contrastColor);
     }
 
-    public static void CheckAndSetColor(string key, string keySource, double luminanceValue)
+    public static Color GetTextContrastColor(this Color color)
     {
-        object? obj = null;
-        Application.Current?.TryFindResource(keySource, out obj);
-        if (obj is Color systemColor)
-        {
-            var newSourceColor = MakeNewColor(systemColor, luminanceValue);
-            if (Application.Current?.Resources.ContainsKey(key) == true)
-            {
-                Application.Current.Resources[key] = newSourceColor;
-            }
-        }
+        return color.GetColorLuminance() < 0.179 ? Colors.White : Colors.Black;
     }
 
     private static Color MakeNewColor(Color SourceColor, double LuminancePercent)

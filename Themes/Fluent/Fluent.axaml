@@ -11,7 +11,18 @@
                 <MergeResourceInclude Source="/Themes/Fluent/TextBoxEx.axaml" />
                 <MergeResourceInclude Source="/Themes/Fluent/SideBySideListSelect.axaml" />
                 <MergeResourceInclude Source="/Themes/Fluent/FileSelectControl.axaml" />
+                <MergeResourceInclude Source="/Themes/Fluent/WindowEx.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Styles.Resources>
+    <Style Selector="Button.CloseButtonStyle">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.CloseButtonStyle:pointerover">
+        <Setter Property="Background" Value="#ffe81123" />
+    </Style>
+    <Style Selector="Button.CloseButtonStyle:pressed">
+        <Setter Property="Background" Value="#fff1707a" />
+    </Style>
 </Styles>

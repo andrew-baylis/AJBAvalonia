@@ -1,10 +1,11 @@
 ﻿// DynamicColorExtension.cs
-// Andrew Baylis
+//  Andrew Baylis
 //  Created: 20/01/2024
 
 #region using
 
 using Avalonia;
+using Avalonia.Data;
 using Avalonia.Media;
 
 #endregion
@@ -12,13 +13,14 @@ using Avalonia.Media;
 namespace AJBAvalonia;
 
 /// <summary>
-///     Use in XAML as {ab:DynamicColor Color=colorValue, LuminancePercent = value, SaturationPercent = value, HuePercent = value}
+///     Use in XAML as {ab:DynamicColor Color=colorValue, LuminancePercent = value, SaturationPercent = value, HuePercent =
+///     value}
 ///     If the colorValue is a {DynamicResource..} then when this changes or if the values change, the color is updated.
 ///     We could also use the Brush property to set a solidcolorbrush value
 /// </summary>
 public class DynamicColorExtension : AvaloniaObject
 {
-    #region Fields
+    #region Avalonia Properties
 
     public static readonly StyledProperty<IBrush?> BrushProperty = AvaloniaProperty.Register<DynamicColorExtension, IBrush?>(nameof(Brush));
     public static readonly StyledProperty<Color?> ColorProperty = AvaloniaProperty.Register<DynamicColorExtension, Color?>(nameof(Color));
@@ -26,18 +28,16 @@ public class DynamicColorExtension : AvaloniaObject
     public static readonly StyledProperty<double> HuePercentProperty = AvaloniaProperty.Register<DynamicColorExtension, double>(nameof(HuePercent), 100d);
     public static readonly StyledProperty<double> LuminancePercentProperty = AvaloniaProperty.Register<DynamicColorExtension, double>(nameof(LuminancePercent), 100d);
 
+    public static readonly DirectProperty<DynamicColorExtension, Color> ModifiedColorProperty =
+        AvaloniaProperty.RegisterDirect<DynamicColorExtension, Color>(nameof(ModifiedColor), o => o.ModifiedColor);
+
     public static readonly StyledProperty<double> SaturationPercentProperty = AvaloniaProperty.Register<DynamicColorExtension, double>(nameof(SaturationPercent), 100d);
 
-    public static readonly DirectProperty<DynamicColorExtension, Color> ModifiedColorProperty = AvaloniaProperty.RegisterDirect<DynamicColorExtension, Color>(nameof(ModifiedColor), o => o.ModifiedColor);
+    #endregion
+
+    #region Fields
 
     private Color _modifiedColor = Colors.Black;
-
-
-    public Color ModifiedColor
-    {
-        get => _modifiedColor;
-        private set => SetAndRaise(ModifiedColorProperty, ref _modifiedColor, value);
-    }
 
     #endregion
 
@@ -73,6 +73,12 @@ public class DynamicColorExtension : AvaloniaObject
         set => SetValue(LuminancePercentProperty, value);
     }
 
+    public Color ModifiedColor
+    {
+        get => _modifiedColor;
+        private set => SetAndRaise(ModifiedColorProperty, ref _modifiedColor, value);
+    }
+
     /// <summary>
     ///     Changes the saturation by the percentage. If negative, it adjusts the gap between the saturation and 1.0
     /// </summary>
@@ -84,7 +90,17 @@ public class DynamicColorExtension : AvaloniaObject
 
     #endregion
 
-    #region Override Methods
+    #region Public Methods
+
+    public IBinding ProvideValue(IServiceProvider serviceProvider)
+    {
+        //return this.ToBinding();
+        return new Binding(nameof(ModifiedColor)) {Source = this};
+    }
+
+    #endregion
+
+    #region Protected Methods
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -107,21 +123,11 @@ public class DynamicColorExtension : AvaloniaObject
 
     #endregion
 
-    #region Public Methods
-
-    public Color ProvideValue(IServiceProvider serviceProvider)
-    {
-        //return this.ToBinding();
-        return _modifiedColor;
-    }
-
-    #endregion
-
     #region Private Methods
 
     private void DoUpdateColor()
     {
-        if (Color is { A: > 0 })
+        if (Color is {A: > 0})
         {
             ModifiedColor = MakeNewColor(Color.Value);
         }

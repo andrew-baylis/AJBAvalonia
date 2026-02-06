@@ -415,21 +415,43 @@ public class ComboBoxEx : ComboBox
 
     private void OnItemsSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (Items.Count > 0)
+        BeginInit();
+        try
         {
-            var obj = SelectedValue;
-            SelectedValue = null;
-            SelectedValue = obj; //ensure changes to selected value get properly propagated
+            if (Items.Count > 0)
+            {
+                var obj = SelectedValue;
+                SelectedValue = obj; //ensure changes to selected value get properly propagated
+            }
+            else
+            {
+                SelectedValue = null;
+            }
+        }
+        finally
+        {
+            EndInit();
         }
     }
 
     private void OnItemsSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (Items.Count > 0)
+        BeginInit();
+        try
         {
-            var obj = SelectedValue;
-            SelectedValue = null;
-            SelectedValue = obj; //ensure changes to selected value get properly propagated
+            if (Items.Count > 0)
+            {
+                var obj = SelectedValue;
+                SelectedValue = obj; //ensure changes to selected value get properly propagated
+            }
+            else
+            {
+                SelectedValue = null;
+            }
+        }
+        finally
+        {
+            EndInit();
         }
     }
 
