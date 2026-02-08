@@ -6,11 +6,11 @@
     <converters:WindowIconToImageSourceConverter x:Key="iconToImageSourceConverter" />
     <converters:NotNullToBoolConverter x:Key="notNullToBoolConverter" />
     <x:Double x:Key="CaptionBarHeight">32</x:Double>
-    <x:Double x:Key="ToolCaptionBarHeight">24</x:Double>
+    <x:Double x:Key="ToolWindowCaptionBarHeight">22</x:Double>
+    <x:Double x:Key="ToolWindowTitleThemeFontSize">10</x:Double>
 
     <ControlTheme x:Key="CloseButtonTheme" TargetType="Button">
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Background" Value="Transparent" />
         <Setter Property="Width" Value="{DynamicResource CaptionButtonWidth}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -24,12 +24,13 @@
     </ControlTheme>
 
     <!--  Add Resources Here  -->
-    <ControlTheme x:Key="{x:Type ab:WindowEx}" TargetType="ab:WindowEx">
+    <ControlTheme x:Key="{x:Type ab:DialogWindowEx}" TargetType="ab:DialogWindowEx">
         <Setter Property="Background" Value="{DynamicResource SystemRegionBrush}" />
         <Setter Property="TransparencyBackgroundFallback" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
         <Setter Property="TopLevel.SystemBarColor" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
         <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="TitleFontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
         <Setter Property="ExtendClientAreaChromeHints" Value="NoChrome" />
         <Setter Property="ExtendClientAreaTitleBarHeightHint" Value="{DynamicResource CaptionBarHeight}" />
@@ -45,7 +46,7 @@
                             <!--  Tool Window Header  -->
                             <Border
                                 Name="PART_CaptionBorder"
-                                Height="{DynamicResource CaptionBarHeight}"
+                                Height="{TemplateBinding ExtendClientAreaTitleBarHeightHint}"
                                 Background="{DynamicResource SystemAccentColor}"
                                 DockPanel.Dock="Top">
                                 <Grid ColumnDefinitions="Auto,*,Auto">
@@ -61,7 +62,9 @@
                                     <TextBlock
                                         Grid.Column="1"
                                         Margin="8,0"
+                                        HorizontalAlignment="{TemplateBinding TitleAlignment}"
                                         VerticalAlignment="Center"
+                                        FontSize="{TemplateBinding TitleFontSize}"
                                         Foreground="{ab:DynamicContrastBrush Brush={Binding ElementName=PART_CaptionBorder,
                                                                                             Path=Background}}"
                                         Text="{TemplateBinding Title}" />
@@ -69,6 +72,7 @@
                                         x:Name="PART_CloseButton"
                                         Grid.Column="2"
                                         HorizontalAlignment="Right"
+                                        Background="Transparent"
                                         Theme="{StaticResource CloseButtonTheme}">
                                         <Viewbox Width="11" Margin="2">
                                             <Path
@@ -98,72 +102,14 @@
         </Style>
     </ControlTheme>
 
-    <ControlTheme x:Key="{x:Type ab:ToolWindowEx}" TargetType="ab:ToolWindowEx">
-        <Setter Property="Background" Value="{DynamicResource SystemRegionBrush}" />
-        <Setter Property="TransparencyBackgroundFallback" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
-        <Setter Property="TopLevel.SystemBarColor" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
-        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
-        <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
-        <Setter Property="ExtendClientAreaChromeHints" Value="NoChrome" />
-        <Setter Property="ExtendClientAreaTitleBarHeightHint" Value="{DynamicResource ToolCaptionBarHeight}" />
-        <Setter Property="ExtendClientAreaToDecorationsHint" Value="True" />
+    <ControlTheme
+        x:Key="{x:Type ab:ToolWindowEx}"
+        BasedOn="{StaticResource {x:Type ab:DialogWindowEx}}"
+        TargetType="ab:ToolWindowEx">
         <Setter Property="CanMaximize" Value="False" />
         <Setter Property="CanMinimize" Value="False" />
-        <Setter Property="Template">
-            <ControlTemplate>
-                <Panel>
-                    <Border Name="PART_TransparencyFallback" IsHitTestVisible="False" />
-                    <Border Background="{TemplateBinding Background}" IsHitTestVisible="False" />
-                    <Panel Margin="{TemplateBinding WindowDecorationMargin}" Background="Transparent" />
-                    <VisualLayerManager>
-                        <DockPanel>
-                            <!--  Tool Window Header  -->
-                            <Border
-                                Name="PART_CaptionBorder"
-                                Height="{DynamicResource ToolCaptionBarHeight}"
-                                Background="{DynamicResource SystemAccentColor}"
-                                DockPanel.Dock="Top">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Margin="8,0"
-                                        HorizontalAlignment="{TemplateBinding TitleAlignment}"
-                                        VerticalAlignment="Center"
-                                        FontSize="10"
-                                        Foreground="{ab:DynamicContrastBrush Brush={Binding ElementName=PART_CaptionBorder,
-                                                                                            Path=Background}}"
-                                        Text="{TemplateBinding Title}" />
-                                    <Button
-                                        x:Name="PART_CloseButton"
-                                        Grid.Column="1"
-                                        HorizontalAlignment="Right"
-                                        Theme="{StaticResource CloseButtonTheme}">
-                                        <Viewbox Width="11" Margin="2">
-                                            <Path
-                                                Data="M1169 1024l879 -879l-145 -145l-879 879l-879 -879l-145 145l879 879l-879 879l145 145l879 -879l879 879l145 -145z"
-                                                Fill="{ab:DynamicContrastBrush Brush={Binding ElementName=PART_CaptionBorder,
-                                                                                              Path=Background}}"
-                                                Stretch="UniformToFill" />
-                                        </Viewbox>
-                                    </Button>
-                                </Grid>
-                            </Border>
-                            <ContentPresenter
-                                Name="PART_ContentPresenter"
-                                Margin="{TemplateBinding Padding}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                Content="{TemplateBinding Content}"
-                                ContentTemplate="{TemplateBinding ContentTemplate}" />
-                        </DockPanel>
-                    </VisualLayerManager>
-                </Panel>
-            </ControlTemplate>
-        </Setter>
-
-        <Style Selector="^[IsActive=False] /template/ Border#PART_CaptionBorder">
-            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
-        </Style>
+        <Setter Property="ExtendClientAreaTitleBarHeightHint" Value="{DynamicResource ToolWindowCaptionBarHeight}" />
+        <Setter Property="TitleFontSize" Value="{DynamicResource ToolWindowTitleThemeFontSize}" />
     </ControlTheme>
+
 </ResourceDictionary>

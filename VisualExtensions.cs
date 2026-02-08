@@ -100,6 +100,14 @@ public static class VisualExtensions
         stream.Position = 0;
         return new Bitmap(stream);
     }
-    
+
+    public static WindowIcon? ConvertToIcon(this Bitmap bitmap)
+    {
+        using var stream = new MemoryStream();
+        bitmap.Save(stream);
+        stream.Position = 0;
+        return new WindowIcon(stream);
+    }
+
     #endregion
 }
