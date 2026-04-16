@@ -40,7 +40,7 @@ public static class SystemColorExtension
         var b1 = color.B / 255.0;
         var b = b1 <= 0.03928 ? b1 / 12.92 : Math.Pow((b1 + 0.055) / 1.055, 2.4);
         //L = 0.2126 * R + 0.7152 * G + 0.0722 * B
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
     }
 
     public static IBrush? GetDynamicSystemBrush(string brushName)
@@ -70,7 +70,7 @@ public static class SystemColorExtension
 
         if (LuminancePercent < 0)
         {
-            luminance = luminance - (1 - luminance) * LuminancePercent / 100d;
+            luminance -= ((1 - luminance) * LuminancePercent / 100d);
         }
         else
         {

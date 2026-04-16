@@ -57,7 +57,7 @@ public class MultiSelectDisplay : TemplatedControl
     public static readonly DirectProperty<MultiSelectDisplay, Thickness> DisplayItemMarginProperty =
         AvaloniaProperty.RegisterDirect<MultiSelectDisplay, Thickness>(nameof(DisplayItemMargin), o => o.DisplayItemMargin, (o, v) => o.DisplayItemMargin = v);
 
-    public static readonly StyledProperty<IBinding?> DisplayMemberBindingProperty = AvaloniaProperty.Register<MultiSelectDisplay, IBinding?>(nameof(DisplayMemberBinding));
+    public static readonly StyledProperty<BindingBase?> DisplayMemberBindingProperty = AvaloniaProperty.Register<MultiSelectDisplay, BindingBase?>(nameof(DisplayMemberBinding));
 
     public static readonly StyledProperty<string?> DisplayTextFormatStringProperty = AvaloniaProperty.Register<MultiSelectDisplay, string?>(nameof(DisplayTextFormatString));
 
@@ -162,7 +162,7 @@ public class MultiSelectDisplay : TemplatedControl
     /// </summary>
     [AssignBinding]
     [InheritDataTypeFromItems(nameof(ItemsSource), AncestorType = typeof(MultiSelectDisplay))]
-    public IBinding? DisplayMemberBinding
+    public BindingBase? DisplayMemberBinding
     {
         get => GetValue(DisplayMemberBindingProperty);
         set => SetValue(DisplayMemberBindingProperty, value);
@@ -352,10 +352,7 @@ public class MultiSelectDisplay : TemplatedControl
 
     private void SetDisplayItemTemplate()
     {
-        if (_itemsControl != null)
-        {
-            _itemsControl.ItemTemplate = GetDisplayItemsTemplate();
-        }
+        _itemsControl?.ItemTemplate = GetDisplayItemsTemplate();
     }
 
     private void SetDisplayText()

@@ -4,11 +4,11 @@
 
 #region using
 
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Threading;
@@ -48,6 +48,9 @@ public class FileSelectControl : TemplatedControl
     public static readonly StyledProperty<HorizontalAlignment> HorizontalContentAlignmentProperty =
         AvaloniaProperty.Register<FileSelectControl, HorizontalAlignment>(nameof(HorizontalContentAlignment));
 
+    public static readonly DirectProperty<FileSelectControl, bool> ShowFileDialogOnTextClickProperty =
+        AvaloniaProperty.RegisterDirect<FileSelectControl, bool>(nameof(ShowFileDialogOnTextClick), o => o.ShowFileDialogOnTextClick, (o, v) => o.ShowFileDialogOnTextClick = v);
+
     public static readonly StyledProperty<string?> TextProperty =
         AvaloniaProperty.Register<FileSelectControl, string?>(nameof(Text), defaultBindingMode: BindingMode.TwoWay, enableDataValidation: true);
 
@@ -60,9 +63,11 @@ public class FileSelectControl : TemplatedControl
     public static readonly RoutedEvent<TextChangedEventArgs> TextChangedEvent =
         RoutedEvent.Register<FileSelectControl, TextChangedEventArgs>(nameof(TextChanged), RoutingStrategies.Bubble);
 
-    private Button? dropButton;
+    private bool _showFileDialogOnTextClick = true;
 
-    private TextBox? fileNameEdit;
+    private Button? _dropButton;
+
+    private TextBox? _fileNameEdit;
 
     #endregion
 
@@ -109,6 +114,12 @@ public class FileSelectControl : TemplatedControl
         set => SetValue(HorizontalContentAlignmentProperty, value);
     }
 
+    public bool ShowFileDialogOnTextClick
+    {
+        get => _showFileDialogOnTextClick;
+        set => SetAndRaise(ShowFileDialogOnTextClickProperty, ref _showFileDialogOnTextClick, value);
+    }
+
     public string? Text
     {
         get => GetValue(TextProperty);
@@ -138,26 +149,24 @@ public class FileSelectControl : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
-        fileNameEdit = e.NameScope.Find<TextBox>("fileNameEdit");
-        if (fileNameEdit != null)
+        _fileNameEdit = e.NameScope.Find<TextBox>("fileNameEdit");
+        if (_fileNameEdit != null)
         {
-            fileNameEdit.Watermark = WatermarkText;
-            fileNameEdit.HorizontalContentAlignment = HorizontalContentAlignment;
+            _fileNameEdit.PlaceholderText = WatermarkText;
+            _fileNameEdit.HorizontalContentAlignment = HorizontalContentAlignment;
+            _fileNameEdit.PointerPressed += FileNameEditOnPointerPressed;
         }
 
-        dropButton = e.NameScope.Find<Button>("dropButton");
-        if (dropButton != null)
-        {
-            dropButton.Click += ShowFileDialogExecute;
-        }
+        _dropButton = e.NameScope.Find<Button>("dropButton");
+        _dropButton?.Click += ShowFileDialogExecute;
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == HorizontalContentAlignmentProperty && fileNameEdit != null)
+        if (change.Property == HorizontalContentAlignmentProperty && _fileNameEdit != null)
         {
-            fileNameEdit.HorizontalContentAlignment = HorizontalContentAlignment;
+            _fileNameEdit.HorizontalContentAlignment = HorizontalContentAlignment;
         }
     }
 
@@ -165,30 +174,31 @@ public class FileSelectControl : TemplatedControl
 
     #region Private Methods
 
+    private void FileNameEditOnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (ShowFileDialogOnTextClick)
+        {
+            ShowFileDialogExecute(sender, e);
+        }
+    }
+
     private void SetDisplayText()
     {
-        if (fileNameEdit != null)
+        if (_fileNameEdit != null)
         {
             if (!string.IsNullOrEmpty(Text))
             {
-                switch (FileNameDisplay)
+                _fileNameEdit.Text = FileNameDisplay switch
                 {
-                    case FileDisplayStyleEnum.FullPath:
-                        fileNameEdit.Text = Text;
-                        break;
-                    case FileDisplayStyleEnum.ShortenPath:
-                        fileNameEdit.Text = Path.TrimEndingDirectorySeparator(Text);
-                        break;
-                    case FileDisplayStyleEnum.FileName:
-                        fileNameEdit.Text = Path.GetFileName(Text);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                    FileDisplayStyleEnum.FullPath => Text,
+                    FileDisplayStyleEnum.ShortenPath => Path.TrimEndingDirectorySeparator(Text),
+                    FileDisplayStyleEnum.FileName => Path.GetFileName(Text),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
             }
             else
             {
-                fileNameEdit.Clear();
+                _fileNameEdit.Clear();
             }
         }
     }
@@ -197,21 +207,13 @@ public class FileSelectControl : TemplatedControl
     {
         Dispatcher.UIThread.Invoke(async () =>
         {
-            string? filename = null;
-            switch (DialogType)
+            string? filename = DialogType switch
             {
-                case FileDialogTypeEnum.FileOpen:
-                    filename = await FileDialogExtensions.OpenFileDialog(DialogTitle ?? "Open File", DialogFilter);
-                    break;
-                case FileDialogTypeEnum.FileOpenImage:
-                    filename = await FileDialogExtensions.OpenFileImageDialog(DialogTitle ?? "Open Image File", DialogFilter);
-                    break;
-                case FileDialogTypeEnum.FileSave:
-                    filename = await FileDialogExtensions.SaveFileDialog(DialogTitle ?? "Save File", DefaultExtension, true, DialogFilter);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                FileDialogTypeEnum.FileOpen => await FileDialogExtensions.OpenFileDialog(DialogTitle ?? "Open File", DialogFilter),
+                FileDialogTypeEnum.FileOpenImage => await FileDialogExtensions.OpenFileImageDialog(DialogTitle ?? "Open Image File", DialogFilter),
+                FileDialogTypeEnum.FileSave => await FileDialogExtensions.SaveFileDialog(DialogTitle ?? "Save File", DefaultExtension, null, true, DialogFilter),
+                _ => throw new ArgumentOutOfRangeException(nameof(DialogType))
+            };
 
             if (!string.IsNullOrEmpty(filename))
             {

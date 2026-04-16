@@ -66,10 +66,7 @@ public class DialogWindowEx : Window
         base.OnApplyTemplate(e);
 
         _closeButton = e.NameScope.Find<Button>("PART_CloseButton");
-        if (_closeButton != null)
-        {
-            _closeButton.Click += CloseButton_Click;
-        }
+        _closeButton?.Click += CloseButton_Click;
 
         SetIconFromCaptionBitmap();
     }
@@ -77,7 +74,7 @@ public class DialogWindowEx : Window
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if(change.Property == CaptionBitmapProperty)
+        if (change.Property == CaptionBitmapProperty)
         {
             SetIconFromCaptionBitmap();
         }
@@ -99,7 +96,7 @@ public class DialogWindowEx : Window
         base.OnPointerPressed(e);
 
         // Forward non-client area events to the custom caption bar
-        if (e.Source is Control {Name: "PART_CaptionBorder"})
+        if (e.Source is Control { Name: "PART_CaptionBorder" })
         {
             BeginMoveDrag(e);
         }

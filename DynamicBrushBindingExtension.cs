@@ -5,6 +5,7 @@
 #region using
 
 using Avalonia;
+using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 
@@ -18,20 +19,20 @@ namespace AJBAvalonia;
 ///     If the colorValue is a {DynamicResource..} then when this changes or if the values change, the color is updated.
 ///     We could also use the Brush property to set a solidcolorbrush value
 /// </summary>
-public class DynamicBrushExtension : AvaloniaObject
+public class DynamicBrushBindingExtension : AvaloniaObject
 {
     #region Avalonia Properties
 
-    public static readonly StyledProperty<IBrush?> BrushProperty = AvaloniaProperty.Register<DynamicBrushExtension, IBrush?>(nameof(Brush));
-    public static readonly StyledProperty<Color?> ColorProperty = AvaloniaProperty.Register<DynamicBrushExtension, Color?>(nameof(Color));
+    public static readonly StyledProperty<IBrush?> BrushProperty = AvaloniaProperty.Register<DynamicBrushBindingExtension, IBrush?>(nameof(Brush));
+    public static readonly StyledProperty<Color?> ColorProperty = AvaloniaProperty.Register<DynamicBrushBindingExtension, Color?>(nameof(Color));
 
-    public static readonly StyledProperty<double> HuePercentProperty = AvaloniaProperty.Register<DynamicBrushExtension, double>(nameof(HuePercent), 100d);
-    public static readonly StyledProperty<double> LuminancePercentProperty = AvaloniaProperty.Register<DynamicBrushExtension, double>(nameof(LuminancePercent), 100d);
+    public static readonly StyledProperty<double> HuePercentProperty = AvaloniaProperty.Register<DynamicBrushBindingExtension, double>(nameof(HuePercent), 100d);
+    public static readonly StyledProperty<double> LuminancePercentProperty = AvaloniaProperty.Register<DynamicBrushBindingExtension, double>(nameof(LuminancePercent), 100d);
 
     public static readonly DirectProperty<DynamicBrushExtension, IBrush> ModifiedBrushProperty =
         AvaloniaProperty.RegisterDirect<DynamicBrushExtension, IBrush>(nameof(ModifiedBrush), o => o.ModifiedBrush);
 
-    public static readonly StyledProperty<double> SaturationPercentProperty = AvaloniaProperty.Register<DynamicBrushExtension, double>(nameof(SaturationPercent), 100d);
+    public static readonly StyledProperty<double> SaturationPercentProperty = AvaloniaProperty.Register<DynamicBrushBindingExtension, double>(nameof(SaturationPercent), 100d);
 
     #endregion
 
@@ -92,10 +93,10 @@ public class DynamicBrushExtension : AvaloniaObject
 
     #region Public Methods
 
-    public IBrush ProvideValue(IServiceProvider serviceProvider)
+    public BindingBase ProvideValue(IServiceProvider serviceProvider)
     {
         //return this.ToBinding();
-        return ModifiedBrush;
+        return new Binding(nameof(ModifiedBrush)) { Source = this };
     }
 
     #endregion
@@ -144,7 +145,7 @@ public class DynamicBrushExtension : AvaloniaObject
         }
         else
         {
-            saturation = saturation * SaturationPercent / 100d;
+            saturation *= SaturationPercent / 100d;
         }
 
         if (HuePercent < 0)
@@ -153,7 +154,7 @@ public class DynamicBrushExtension : AvaloniaObject
         }
         else
         {
-            hue = hue * HuePercent / 100d;
+            hue *= HuePercent / 100d;
         }
 
         if (LuminancePercent < 0)
@@ -162,7 +163,7 @@ public class DynamicBrushExtension : AvaloniaObject
         }
         else
         {
-            luminance = luminance * LuminancePercent / 100d;
+            luminance *= LuminancePercent / 100d;
         }
 
         var lighHSL = HslColor.FromHsl(Math.Clamp(hue, 0, 360d), Math.Clamp(saturation, 0d, 1d), Math.Clamp(luminance, 0, 1d));

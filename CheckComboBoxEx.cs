@@ -4,11 +4,6 @@
 
 #region using
 
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -21,6 +16,11 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Metadata;
+using System.Collections;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Globalization;
 
 #endregion
 
@@ -37,7 +37,7 @@ public class CheckComboBoxEx : TemplatedControl
     public static readonly StyledProperty<IBrush?> ClearButtonBackgroundProperty =
         AvaloniaProperty.Register<CheckComboBoxEx, IBrush?>(nameof(ClearButtonBackground), Brushes.Transparent);
 
-    public static readonly StyledProperty<IBinding?> DisplayMemberBindingProperty = AvaloniaProperty.Register<CheckComboBoxEx, IBinding?>(nameof(DisplayMemberBinding));
+    public static readonly StyledProperty<BindingBase?> DisplayMemberBindingProperty = AvaloniaProperty.Register<CheckComboBoxEx, BindingBase?>(nameof(DisplayMemberBinding));
 
     public static readonly DirectProperty<CheckComboBoxEx, Geometry?> DropGlyphPathProperty =
         AvaloniaProperty.RegisterDirect<CheckComboBoxEx, Geometry?>(nameof(DropGlyphPath), o => o.DropGlyphPath, (o, v) => o.DropGlyphPath = v);
@@ -132,10 +132,10 @@ public class CheckComboBoxEx : TemplatedControl
         "m 836.5,1.4041 c 169.2,13.5 317,112.6 392.4,263.2 37.8,75.7 55.7,162.9 50.1,244.1 -6,85.9 -32.3,164.6 -78.5,234.7 -105.8,160.4 -297.6,241.9 -487,207 -28.7,-5.3 -60.3,-14.4 -88,-25.2 -16.5,-6.4 -53.7,-24.5 -68.4,-33.3 l -10.4,-6.2 -197.1,197.1 -197.1,197.1 -76.3,-76.2 -76.2,-76.3 197.1,-197.1 197.1,-197.1 -6.2,-10.4 c -8.8,-14.7 -26.9,-51.9 -33.3,-68.4 -48.8,-125.1 -43.5,-263.9 14.7,-384 46.3,-95.6 121.6,-172 216.3,-219.4 77.9,-38.9 165.9,-56.3 250.8,-49.6 z m -76,161 c -108.3,14.6 -198.7,79.2 -246.5,176 -15.8,31.9 -25.4,63.7 -30.7,101.5 -2.4,17.6 -2.4,61.4 0,79 11,78.2 45,143.8 101.7,196.2 48.2,44.5 107.4,71.9 176,81.5 17.6,2.4 61.4,2.4 79,0 37.8,-5.3 69.6,-14.9 101.5,-30.7 106.8,-52.7 174.8,-158.6 178.2,-277.5 2.6,-92.1 -34,-179.6 -101.3,-242.6 -52.1,-48.7 -117.6,-77.8 -191.2,-84.9 -13.1,-1.3 -52.9,-0.4 -66.7,1.5 z";
     private const string _summarytextFormat = "{0} items selected";
 
-    internal const string pcDropdownOpen = ":dropdownopen";
-    internal const string pcPressed = ":pressed";
+    internal const string _pcDropdownOpen = ":dropdownopen";
+    internal const string _pcPressed = ":pressed";
 
-    private readonly ObservableCollection<CheckComboBoxItem> _checkItems = new();
+    private readonly ObservableCollection<CheckComboBoxItem> _checkItems = [];
 
     private readonly ObservableCollection<object?> _selectedItemsCollection;
     private Border? _borderBackground;
@@ -182,7 +182,7 @@ public class CheckComboBoxEx : TemplatedControl
     {
         PlaceholderForeground = Brushes.LightGray;
         PlaceholderFontStyle = FontStyle.Italic;
-        _selectedItemsCollection = new ObservableCollection<object?>();
+        _selectedItemsCollection = [];
     }
 
     #region Properties
@@ -198,7 +198,7 @@ public class CheckComboBoxEx : TemplatedControl
 
     [AssignBinding]
     [InheritDataTypeFromItems(nameof(ItemsSource), AncestorType = typeof(CheckComboBoxEx))]
-    public IBinding? DisplayMemberBinding
+    public BindingBase? DisplayMemberBinding
     {
         get => GetValue(DisplayMemberBindingProperty);
         set => SetValue(DisplayMemberBindingProperty, value);
@@ -631,10 +631,7 @@ public class CheckComboBoxEx : TemplatedControl
         _borderBackground = e.NameScope.Find<Border>("PART_Background");
 
         _clearButton = e.NameScope.Find<ComboClearButton>("PART_ClearButton");
-        if (_clearButton != null)
-        {
-            _clearButton.Click += (_, _) => ClearCommandExecute();
-        }
+        _clearButton?.Click += (_, _) => ClearCommandExecute();
     }
 
     /// <summary>
@@ -723,7 +720,7 @@ public class CheckComboBoxEx : TemplatedControl
             var ctl = this.InputHitTest(point);
             if (ReferenceEquals(ctl, _borderBackground))
             {
-                PseudoClasses.Set(pcPressed, true);
+                PseudoClasses.Set(_pcPressed, true);
             }
         }
     }
@@ -731,16 +728,16 @@ public class CheckComboBoxEx : TemplatedControl
     /// <inheritdoc />
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        if (!e.Handled && e.Source is Visual source)
+        if (e is { Handled: false, Source: Visual })
         {
-            if (PseudoClasses.Contains(pcPressed) && !IsDropDownOpen)
+            if (PseudoClasses.Contains(_pcPressed) && !IsDropDownOpen)
             {
                 SetCurrentValue(IsDropDownOpenProperty, !IsDropDownOpen);
                 e.Handled = true;
             }
         }
 
-        PseudoClasses.Set(pcPressed, false);
+        PseudoClasses.Set(_pcPressed, false);
         base.OnPointerReleased(e);
     }
 
@@ -823,10 +820,7 @@ public class CheckComboBoxEx : TemplatedControl
 
     private void CheckClearEnabled()
     {
-        if (_clearButton != null)
-        {
-            _clearButton.IsEnabled = SelectedCount > 0;
-        }
+        _clearButton?.IsEnabled = SelectedCount > 0;
     }
 
     private void CheckComboBoxExPopupClosed(object? sender, EventArgs e)
@@ -857,10 +851,10 @@ public class CheckComboBoxEx : TemplatedControl
 
         if (DisplayMemberBinding is { } binding)
         {
-            return new FuncDataTemplate<object?>((_, _) => new TextBlock {[!TextBlock.TextProperty] = binding});
+            return new FuncDataTemplate<object?>((_, _) => new TextBlock { [!TextBlock.TextProperty] = binding });
         }
 
-        return new FuncDataTemplate<object?>((_, _) => new TextBlock {[!TextBlock.TextProperty] = new Binding()});
+        return new FuncDataTemplate<object?>((_, _) => new TextBlock { [!TextBlock.TextProperty] = new Binding() });
     }
 
     private void InternalClearSelectedItems()
@@ -900,22 +894,21 @@ public class CheckComboBoxEx : TemplatedControl
 
     private void MakeAndSetListBoxItemTemplate()
     {
-        if (_dropListbox != null)
-        {
-            _dropListbox.ItemTemplate = new FuncDataTemplate<CheckComboBoxItem?>((_, _) =>
+        _dropListbox?.ItemTemplate = new FuncDataTemplate<CheckComboBoxItem?>((_, _) =>
             {
-                var checkBox = new CheckBox {VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch};
-                checkBox[!ToggleButton.IsCheckedProperty] = new Binding(nameof(CheckComboBoxItem.IsSelected)) {Mode = BindingMode.TwoWay};
+                var checkBox = new CheckBox { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch };
+                checkBox[!ToggleButton.IsCheckedProperty] = new Binding(nameof(CheckComboBoxItem.IsSelected)) { Mode = BindingMode.TwoWay };
                 var contentPresenter = new ContentControl
                 {
-                    VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(5, 2)
+                    VerticalAlignment = VerticalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    Margin = new Thickness(5, 2)
                 };
                 contentPresenter[!ContentPresenter.ContentProperty] = new Binding(nameof(CheckComboBoxItem.ItemData));
                 contentPresenter.ContentTemplate = GetEffectiveItemTemplate();
                 checkBox.Content = contentPresenter;
                 return checkBox;
             });
-        }
     }
 
     private void OnItemsSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

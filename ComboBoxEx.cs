@@ -4,9 +4,6 @@
 
 #region using
 
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -16,6 +13,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Reflection;
 
 #endregion
 
@@ -219,10 +219,7 @@ public class ComboBoxEx : ComboBox
         }
 
         _clearButton = e.NameScope.Find<ComboClearButton>("PART_ClearButton");
-        if (_clearButton != null)
-        {
-            _clearButton.Click += (_, _) => DoClear();
-        }
+        _clearButton?.Click += (_, _) => DoClear();
     }
 
     /// <summary>
@@ -382,10 +379,7 @@ public class ComboBoxEx : ComboBox
 
     private void CheckCanClear()
     {
-        if (_clearButton != null)
-        {
-            _clearButton.IsEnabled = SelectedIndex >= 0;
-        }
+        _clearButton?.IsEnabled = SelectedIndex >= 0;
     }
 
     private void ClearCommandExecute()
@@ -457,7 +451,7 @@ public class ComboBoxEx : ComboBox
 
     private void StartTextSearchTimer()
     {
-        _txtSearchTimer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(1)};
+        _txtSearchTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _txtSearchTimer.Tick += TextSearchTimer_Tick;
         _txtSearchTimer.Start();
     }

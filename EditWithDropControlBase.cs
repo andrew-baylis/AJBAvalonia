@@ -421,10 +421,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
         }
         else if (change.Property == AllowClearProperty)
         {
-            if (_editBox != null)
-            {
-                _editBox.AllowClear = AllowClear;
-            }
+            _editBox?.AllowClear = AllowClear;
         }
         else if (change.Property == CloseDropDownOnClickOutsideProperty)
         {

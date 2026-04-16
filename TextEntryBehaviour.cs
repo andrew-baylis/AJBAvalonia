@@ -52,18 +52,12 @@ public class TextEntryBehaviour : Behavior<TextBox>
     protected override void OnAttached()
     {
         base.OnAttached();
-        if (AssociatedObject != null)
-        {
-            AssociatedObject.TextChanging += AssociatedObjectOnTextChanging;
-        }
+        AssociatedObject?.TextChanging += AssociatedObjectOnTextChanging;
     }
 
     protected override void OnDetaching()
     {
-        if (AssociatedObject != null)
-        {
-            AssociatedObject.TextChanging -= AssociatedObjectOnTextChanging;
-        }
+        AssociatedObject?.TextChanging -= AssociatedObjectOnTextChanging;
 
         base.OnDetaching();
     }

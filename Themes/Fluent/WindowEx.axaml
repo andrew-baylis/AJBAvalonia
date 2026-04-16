@@ -9,7 +9,9 @@
     <x:Double x:Key="ToolWindowCaptionBarHeight">22</x:Double>
     <x:Double x:Key="ToolWindowTitleThemeFontSize">10</x:Double>
 
-    <ControlTheme x:Key="CloseButtonTheme" TargetType="Button">
+    <ControlTheme
+        x:Key="CloseButtonTheme"
+        TargetType="Button">
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Width" Value="{DynamicResource CaptionButtonWidth}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -24,7 +26,9 @@
     </ControlTheme>
 
     <!--  Add Resources Here  -->
-    <ControlTheme x:Key="{x:Type ab:DialogWindowEx}" TargetType="ab:DialogWindowEx">
+    <ControlTheme
+        x:Key="{x:Type ab:DialogWindowEx}"
+        TargetType="ab:DialogWindowEx">
         <Setter Property="Background" Value="{DynamicResource SystemRegionBrush}" />
         <Setter Property="TransparencyBackgroundFallback" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
         <Setter Property="TopLevel.SystemBarColor" Value="{DynamicResource SystemControlBackgroundAltHighBrush}" />
@@ -32,15 +36,20 @@
         <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="TitleFontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
         <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
-        <Setter Property="ExtendClientAreaChromeHints" Value="NoChrome" />
-        <Setter Property="ExtendClientAreaTitleBarHeightHint" Value="{DynamicResource CaptionBarHeight}" />
+        <Setter Property="WindowDecorations" Value="BorderOnly" />
         <Setter Property="ExtendClientAreaToDecorationsHint" Value="True" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel>
-                    <Border Name="PART_TransparencyFallback" IsHitTestVisible="False" />
-                    <Border Background="{TemplateBinding Background}" IsHitTestVisible="False" />
-                    <Panel Margin="{TemplateBinding WindowDecorationMargin}" Background="Transparent" />
+                    <Border
+                        Name="PART_TransparencyFallback"
+                        IsHitTestVisible="False" />
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        IsHitTestVisible="False" />
+                    <Panel
+                        Margin="{TemplateBinding WindowDecorationMargin}"
+                        Background="Transparent" />
                     <VisualLayerManager>
                         <DockPanel>
                             <!--  Tool Window Header  -->
@@ -48,7 +57,8 @@
                                 Name="PART_CaptionBorder"
                                 Height="{TemplateBinding ExtendClientAreaTitleBarHeightHint}"
                                 Background="{DynamicResource SystemAccentColor}"
-                                DockPanel.Dock="Top">
+                                DockPanel.Dock="Top"
+                                WindowDecorationProperties.ElementRole="TitleBar">
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <Image
                                         Width="16"
@@ -73,8 +83,11 @@
                                         Grid.Column="2"
                                         HorizontalAlignment="Right"
                                         Background="Transparent"
-                                        Theme="{StaticResource CloseButtonTheme}">
-                                        <Viewbox Width="11" Margin="2">
+                                        Theme="{StaticResource CloseButtonTheme}"
+                                        WindowDecorationProperties.ElementRole="CloseButton">
+                                        <Viewbox
+                                            Width="11"
+                                            Margin="2">
                                             <Path
                                                 Data="M1169 1024l879 -879l-145 -145l-879 879l-879 -879l-145 145l879 879l-879 879l145 145l879 -879l879 879l145 -145z"
                                                 Fill="{ab:DynamicContrastBrush Brush={Binding ElementName=PART_CaptionBorder,

@@ -4,13 +4,13 @@
 
 #region using
 
-using System.ComponentModel;
 using AJBAvalonia.Markup;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using System.ComponentModel;
 
 #endregion
 
@@ -103,7 +103,7 @@ public class EnumComboBox : ComboBox
 
     #region Private Methods
 
-    private string GetEnumDescription(object enumerationValue)
+    private static string GetEnumDescription(object enumerationValue)
     {
         var type = enumerationValue.GetType();
 
@@ -123,7 +123,7 @@ public class EnumComboBox : ComboBox
 
                 if (attrs.Length > 0)
                 {
-                    return ((DescriptionAttribute) attrs[0]).Description;
+                    return ((DescriptionAttribute)attrs[0]).Description;
                 }
             }
         }
@@ -145,7 +145,7 @@ public class EnumComboBox : ComboBox
             enumDescArray.AddRange(from Enum e in enumValues let desc = GetEnumDescription(e) select new EnumDesc(e, desc));
         }
 
-        return enumDescArray.ToArray();
+        return [.. enumDescArray];
     }
 
     private void RefreshItemSourceList()

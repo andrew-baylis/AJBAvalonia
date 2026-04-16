@@ -4,12 +4,11 @@
 
 #region using
 
-using System.ComponentModel;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Layout;
+using System.ComponentModel;
 
 #endregion
 
@@ -59,7 +58,7 @@ public class RadioGroup : Panel
 
     private int _rows;
 
-    private RadioButton? customButton;
+    private RadioButton? _customButton;
 
     #endregion
 
@@ -174,7 +173,7 @@ public class RadioGroup : Panel
     /// <summary>
     /// Gets a value indicating whether the selected item is the custom value.
     /// </summary>
-    public bool SelectedIsCustom => customButton?.IsChecked == true;
+    public bool SelectedIsCustom => _customButton?.IsChecked == true;
 
     /// <summary>
     /// Gets or sets the string representation of the selected item.
@@ -292,11 +291,11 @@ public class RadioGroup : Panel
         base.OnPropertyChanged(change);
         if (change.Property == SelectedItemValueProperty)
         {
-            SetItemValue((string?) change.NewValue);
+            SetItemValue((string?)change.NewValue);
         }
         else if (change.Property == SelectedValueProperty && change.NewValue != null)
         {
-            SetSelectedRadioButton((int) change.NewValue);
+            SetSelectedRadioButton((int)change.NewValue);
         }
         else if (change.Property == RadioButtonMarginProperty)
         {
@@ -320,8 +319,8 @@ public class RadioGroup : Panel
             switch (Children[value])
             {
                 case RadioButton rb:
-                    return (string?) rb.Content;
-                case Grid when HasCustomButton && customButton != null:
+                    return (string?)rb.Content;
+                case Grid when HasCustomButton && _customButton != null:
                     return CustomButtonEditValue;
             }
         }
@@ -408,7 +407,7 @@ public class RadioGroup : Panel
 
         foreach (var s in list)
         {
-            var rb = new RadioButton {Content = s, GroupName = _groupName, VerticalAlignment = VerticalAlignment.Center};
+            var rb = new RadioButton { Content = s, GroupName = _groupName, VerticalAlignment = VerticalAlignment.Center };
             rb.Click += (_, _) => RbClickExecute();
             if (RadioButtonMargin != null)
             {
@@ -420,17 +419,17 @@ public class RadioGroup : Panel
 
         if (HasCustomButton)
         {
-            var customGrid = new Grid {ColumnDefinitions = ColumnDefinitions.Parse("Auto,*")};
-            customButton = new RadioButton {Content = CustomButtonText, GroupName = _groupName, VerticalAlignment = VerticalAlignment.Center};
-            customButton.Click += (_, _) => RbClickExecute();
-            Grid.SetColumn(customButton, 0);
-            var edit = new TextBox {VerticalAlignment = VerticalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 5, 0)};
-            var b = new Binding(nameof(CustomButtonEditValue), BindingMode.TwoWay) {Source = this};
+            var customGrid = new Grid { ColumnDefinitions = ColumnDefinitions.Parse("Auto,*") };
+            _customButton = new RadioButton { Content = CustomButtonText, GroupName = _groupName, VerticalAlignment = VerticalAlignment.Center };
+            _customButton.Click += (_, _) => RbClickExecute();
+            Grid.SetColumn(_customButton, 0);
+            var edit = new TextBox { VerticalAlignment = VerticalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 5, 0) };
+            var b = new ReflectionBinding(nameof(CustomButtonEditValue)) { Source = this, Mode = BindingMode.TwoWay };
             edit.Bind(TextBox.TextProperty, b);
-            var c = new Binding(nameof(RadioButton.IsChecked)) {Source = customButton};
+            var c = new ReflectionBinding(nameof(RadioButton.IsChecked)) { Source = _customButton };
             edit.Bind(IsEnabledProperty, c);
             Grid.SetColumn(edit, 1);
-            customGrid.Children.Add(customButton);
+            customGrid.Children.Add(_customButton);
             customGrid.Children.Add(edit);
             if (RadioButtonMargin != null)
             {
@@ -448,9 +447,9 @@ public class RadioGroup : Panel
             return rb.IsChecked == true;
         }
 
-        if (item is Grid && HasCustomButton && customButton != null)
+        if (item is Grid && HasCustomButton && _customButton != null)
         {
-            return customButton.IsChecked == true;
+            return _customButton.IsChecked == true;
         }
 
         return false;
@@ -488,9 +487,9 @@ public class RadioGroup : Panel
             {
                 rb.IsChecked = true;
             }
-            else if (HasCustomButton && customButton != null)
+            else if (HasCustomButton && _customButton != null)
             {
-                customButton.IsChecked = true;
+                _customButton.IsChecked = true;
             }
         }
     }
@@ -522,7 +521,7 @@ public class RadioGroup : Panel
                 switch (Orientation)
                 {
                     case GroupOrientation.Square:
-                        _rows = _columns = (int) Math.Ceiling(Math.Sqrt(itemCount));
+                        _rows = _columns = (int)Math.Ceiling(Math.Sqrt(itemCount));
                         break;
                     case GroupOrientation.Horizontal:
                         _columns = itemCount;

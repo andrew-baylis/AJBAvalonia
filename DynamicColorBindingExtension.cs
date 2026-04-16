@@ -1,43 +1,43 @@
-﻿// DynamicBrushExtension.cs
+﻿// DynamicColorBindingExtension.cs
 //  Andrew Baylis
-//  Created: 15/06/2024
+//  Created: 20/01/2024
 
 #region using
 
 using Avalonia;
+using Avalonia.Data;
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
 
 #endregion
 
 namespace AJBAvalonia;
 
 /// <summary>
-///     Use in XAML as {ab:DynamicBrush Color=colorValue, LuminancePercent = value, SaturationPercent = value, HuePercent =
+///     Use in XAML as {ab:DynamicColor Color=colorValue, LuminancePercent = value, SaturationPercent = value, HuePercent =
 ///     value}
 ///     If the colorValue is a {DynamicResource..} then when this changes or if the values change, the color is updated.
 ///     We could also use the Brush property to set a solidcolorbrush value
 /// </summary>
-public class DynamicBrushExtension : AvaloniaObject
+public class DynamicColorBindingExtension : AvaloniaObject
 {
     #region Avalonia Properties
 
-    public static readonly StyledProperty<IBrush?> BrushProperty = AvaloniaProperty.Register<DynamicBrushExtension, IBrush?>(nameof(Brush));
-    public static readonly StyledProperty<Color?> ColorProperty = AvaloniaProperty.Register<DynamicBrushExtension, Color?>(nameof(Color));
+    public static readonly StyledProperty<IBrush?> BrushProperty = AvaloniaProperty.Register<DynamicColorBindingExtension, IBrush?>(nameof(Brush));
+    public static readonly StyledProperty<Color?> ColorProperty = AvaloniaProperty.Register<DynamicColorBindingExtension, Color?>(nameof(Color));
 
-    public static readonly StyledProperty<double> HuePercentProperty = AvaloniaProperty.Register<DynamicBrushExtension, double>(nameof(HuePercent), 100d);
-    public static readonly StyledProperty<double> LuminancePercentProperty = AvaloniaProperty.Register<DynamicBrushExtension, double>(nameof(LuminancePercent), 100d);
+    public static readonly StyledProperty<double> HuePercentProperty = AvaloniaProperty.Register<DynamicColorBindingExtension, double>(nameof(HuePercent), 100d);
+    public static readonly StyledProperty<double> LuminancePercentProperty = AvaloniaProperty.Register<DynamicColorBindingExtension, double>(nameof(LuminancePercent), 100d);
 
-    public static readonly DirectProperty<DynamicBrushExtension, IBrush> ModifiedBrushProperty =
-        AvaloniaProperty.RegisterDirect<DynamicBrushExtension, IBrush>(nameof(ModifiedBrush), o => o.ModifiedBrush);
+    public static readonly DirectProperty<DynamicColorBindingExtension, Color> ModifiedColorProperty =
+        AvaloniaProperty.RegisterDirect<DynamicColorBindingExtension, Color>(nameof(ModifiedColor), o => o.ModifiedColor);
 
-    public static readonly StyledProperty<double> SaturationPercentProperty = AvaloniaProperty.Register<DynamicBrushExtension, double>(nameof(SaturationPercent), 100d);
+    public static readonly StyledProperty<double> SaturationPercentProperty = AvaloniaProperty.Register<DynamicColorBindingExtension, double>(nameof(SaturationPercent), 100d);
 
     #endregion
 
     #region Fields
 
-    private IBrush _modifiedBrush = new SolidColorBrush(Colors.Yellow);
+    private Color _modifiedColor = Colors.Black;
 
     #endregion
 
@@ -73,10 +73,10 @@ public class DynamicBrushExtension : AvaloniaObject
         set => SetValue(LuminancePercentProperty, value);
     }
 
-    public IBrush ModifiedBrush
+    public Color ModifiedColor
     {
-        get => _modifiedBrush;
-        private set => SetAndRaise(ModifiedBrushProperty, ref _modifiedBrush, value);
+        get => _modifiedColor;
+        private set => SetAndRaise(ModifiedColorProperty, ref _modifiedColor, value);
     }
 
     /// <summary>
@@ -92,10 +92,10 @@ public class DynamicBrushExtension : AvaloniaObject
 
     #region Public Methods
 
-    public IBrush ProvideValue(IServiceProvider serviceProvider)
+    public BindingBase ProvideValue(IServiceProvider serviceProvider)
     {
         //return this.ToBinding();
-        return ModifiedBrush;
+        return new Binding(nameof(ModifiedColor)) { Source = this };
     }
 
     #endregion
@@ -117,6 +117,8 @@ public class DynamicBrushExtension : AvaloniaObject
         {
             DoUpdateColor();
         }
+
+        DoUpdateColor();
     }
 
     #endregion
@@ -127,8 +129,7 @@ public class DynamicBrushExtension : AvaloniaObject
     {
         if (Color is { A: > 0 })
         {
-            var c = MakeNewColor(Color.Value);
-            ModifiedBrush = new ImmutableSolidColorBrush(c);
+            ModifiedColor = MakeNewColor(Color.Value);
         }
     }
 

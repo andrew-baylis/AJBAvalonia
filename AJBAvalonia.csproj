@@ -3,7 +3,7 @@
         <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>3.6.0</Version>
+        <Version>3.7.0</Version>
         <LangVersion>latest</LangVersion>
         <Title>Avalonia Controls - AJB</Title>
         <Description>Some controls for Avalonia: GroupBox, ComboBoxEx, TextBoxEx, RadioGroup, RadioCheckEnumGroup, SideBySideList and DropControl</Description>
@@ -34,6 +34,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Remove="AnimatedLinearBrush.cs" />
         <Compile Remove="Markup\CustomTypeBindingExtension.cs" />
         <Compile Remove="TooltipExtension.cs" />
     </ItemGroup>
@@ -54,9 +55,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.11" />
-        <PackageReference Include="Avalonia.Skia" Version="11.3.11" />
-        <PackageReference Include="Xaml.Behaviors.Interactivity" Version="11.3.9.3" />
+        <PackageReference Include="Avalonia" Version="12.0.1" />
+        <PackageReference Include="Avalonia.Skia" Version="12.0.1" />
+        <PackageReference Include="Xaml.Behaviors.Interactivity" Version="12.0.0" />
     </ItemGroup>
 
     <Target Name="CopyPackage" AfterTargets="Pack">

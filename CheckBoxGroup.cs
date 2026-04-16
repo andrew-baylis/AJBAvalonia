@@ -295,7 +295,7 @@ public class CheckBoxGroup : Panel
                 result |= mask;
             }
 
-            mask = mask << 1;
+            mask <<= 1;
         }
 
         return result;
@@ -385,7 +385,7 @@ public class CheckBoxGroup : Panel
                     SetSelectedCheckBox(v);
                 }
 
-                mask = mask << 1;
+                mask <<= 1;
             }
         }
     }

@@ -4,9 +4,6 @@
 
 #region using
 
-using System.Globalization;
-using System.Reflection;
-using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -14,6 +11,9 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using System.Globalization;
+using System.Reflection;
+using System.Text;
 
 #endregion
 
@@ -171,10 +171,13 @@ public class NumericTextBox : TextBoxEx
         _presenter?.MoveCaretToTextPosition(CaretIndex);
     }
 
-    protected override void OnGotFocus(GotFocusEventArgs e)
+    protected override void OnGotFocus(FocusChangedEventArgs e)
     {
         //reformat so no commas
-        SetTextFromNumericValue(true);
+        if (ReferenceEquals(e.NewFocusedElement, this))
+        {
+            SetTextFromNumericValue(true);
+        }
         base.OnGotFocus(e);
     }
 
@@ -210,7 +213,7 @@ public class NumericTextBox : TextBoxEx
         _presenter?.MoveCaretToTextPosition(CaretIndex);
     }
 
-    protected override void OnLostFocus(RoutedEventArgs e)
+    protected override void OnLostFocus(FocusChangedEventArgs e)
     {
         base.OnLostFocus(e);
 
@@ -345,81 +348,81 @@ public class NumericTextBox : TextBoxEx
 
                 return 0d;
             case TextEntryEnum.Time12Hr:
-            {
-                var time = TimeSpan.Zero;
-                if (!string.IsNullOrEmpty(Text))
                 {
-                    var m = RegExExtensions.time12hrClock.Match(Text);
-                    var h = m.Groups["hour"].Value;
-                    var min = m.Groups["minute"].Value;
-                    var s = m.Groups["seconds"].Value;
-                    var a = m.Groups["ampm"].Value;
-                    if (!int.TryParse(h, out var hour))
+                    var time = TimeSpan.Zero;
+                    if (!string.IsNullOrEmpty(Text))
                     {
-                        hour = 0;
+                        var m = RegExExtensions.time12hrClock.Match(Text);
+                        var h = m.Groups["hour"].Value;
+                        var min = m.Groups["minute"].Value;
+                        var s = m.Groups["seconds"].Value;
+                        var a = m.Groups["ampm"].Value;
+                        if (!int.TryParse(h, out var hour))
+                        {
+                            hour = 0;
+                        }
+
+                        if (!int.TryParse(min, out var minute))
+                        {
+                            minute = 0;
+                        }
+
+                        if (!int.TryParse(s, out var second))
+                        {
+                            second = 0;
+                        }
+
+                        if (a.Length > 0 && a.ToUpper()[0] == 'P')
+                        {
+                            hour += 12;
+                        }
+
+                        time = new TimeSpan(hour, minute, second);
                     }
 
-                    if (!int.TryParse(min, out var minute))
+                    if (GetNumericValueBoundType() == typeof(DateTime))
                     {
-                        minute = 0;
+                        return DateTime.MinValue.Add(time);
                     }
 
-                    if (!int.TryParse(s, out var second))
-                    {
-                        second = 0;
-                    }
-
-                    if (a.Length > 0 && a.ToUpper()[0] == 'P')
-                    {
-                        hour += 12;
-                    }
-
-                    time = new TimeSpan(hour, minute, second);
+                    return time;
                 }
-
-                if (GetNumericValueBoundType() == typeof(DateTime))
-                {
-                    return DateTime.MinValue.Add(time);
-                }
-
-                return time;
-            }
 
             case TextEntryEnum.Time24Hr:
-            {
-                var time = TimeSpan.Zero;
-                if (!string.IsNullOrEmpty(Text))
                 {
-                    var m = RegExExtensions.time24hrClock.Match(Text);
-                    var h = m.Groups["hour"].Value;
-                    var min = m.Groups["minute"].Value;
-                    var s = m.Groups["seconds"].Value;
-
-                    if (!int.TryParse(h, out var hour))
+                    var time = TimeSpan.Zero;
+                    if (!string.IsNullOrEmpty(Text))
                     {
-                        hour = 0;
+                        var m = RegExExtensions.time24hrClock.Match(Text);
+                        var h = m.Groups["hour"].Value;
+                        var min = m.Groups["minute"].Value;
+                        var s = m.Groups["seconds"].Value;
+
+                        if (!int.TryParse(h, out var hour))
+                        {
+                            hour = 0;
+                        }
+
+                        if (!int.TryParse(min, out var minute))
+                        {
+                            minute = 0;
+                        }
+
+                        if (!int.TryParse(s, out var second))
+                        {
+                            second = 0;
+                        }
+
+                        time = new TimeSpan(hour, minute, second);
                     }
 
-                    if (!int.TryParse(min, out var minute))
+                    if (GetNumericValueBoundType() == typeof(DateTime))
                     {
-                        minute = 0;
+                        return DateTime.MinValue.Add(time);
                     }
 
-                    if (!int.TryParse(s, out var second))
-                    {
-                        second = 0;
-                    }
-
-                    time = new TimeSpan(hour, minute, second);
+                    return time;
                 }
-
-                if (GetNumericValueBoundType() == typeof(DateTime))
-                {
-                    return DateTime.MinValue.Add(time);
-                }
-
-                return time;
-            }
 
             case TextEntryEnum.AnyText:
                 return Text;
@@ -479,7 +482,7 @@ public class NumericTextBox : TextBoxEx
     private Type? GetNumericValueUnderlyingType()
     {
         var type = GetNumericValueBoundType();
-        if (type is {IsGenericType: true} && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+        if (type is { IsGenericType: true } && type.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
             return Nullable.GetUnderlyingType(type);
         }
@@ -501,64 +504,64 @@ public class NumericTextBox : TextBoxEx
         {
             case TextEntryEnum.Time12Hr:
             case TextEntryEnum.Time24Hr:
-            {
-                if (value is TimeSpan ts)
                 {
-                    if (MaximumValue is TimeSpan max && ts > max)
+                    if (value is TimeSpan ts)
                     {
-                        return max;
-                    }
+                        if (MaximumValue is TimeSpan max && ts > max)
+                        {
+                            return max;
+                        }
 
-                    if (MinimumValue is TimeSpan min && ts < min)
+                        if (MinimumValue is TimeSpan min && ts < min)
+                        {
+                            return min;
+                        }
+                    }
+                    else if (value is DateTime dt)
                     {
-                        return min;
+                        if (MaximumValue is DateTime max && dt > max)
+                        {
+                            return max;
+                        }
+
+                        if (MinimumValue is DateTime min && dt < min)
+                        {
+                            return min;
+                        }
                     }
                 }
-                else if (value is DateTime dt)
-                {
-                    if (MaximumValue is DateTime max && dt > max)
-                    {
-                        return max;
-                    }
-
-                    if (MinimumValue is DateTime min && dt < min)
-                    {
-                        return min;
-                    }
-                }
-            }
                 break;
             case TextEntryEnum.AnyText:
-            {
-                if (MaximumValue is string maxs && string.CompareOrdinal(value?.ToString(), maxs) > 0)
                 {
-                    return maxs;
-                }
+                    if (MaximumValue is string maxs && string.CompareOrdinal(value?.ToString(), maxs) > 0)
+                    {
+                        return maxs;
+                    }
 
-                if (MinimumValue is string mins && string.CompareOrdinal(value?.ToString(), mins) < 0)
-                {
-                    return mins;
+                    if (MinimumValue is string mins && string.CompareOrdinal(value?.ToString(), mins) < 0)
+                    {
+                        return mins;
+                    }
                 }
-            }
                 break;
             default:
-            {
-                var d = string.Format(CultureInfo.CurrentCulture, "{0:G}", value);
-                if (double.TryParse(d, NumberStyles.Any, CultureInfo.CurrentCulture, out var result))
                 {
-                    var maxs = string.Format(CultureInfo.CurrentCulture, "{0:G}", MaximumValue);
-                    if (double.TryParse(maxs, NumberStyles.Any, CultureInfo.CurrentCulture, out var max) && result > max)
+                    var d = string.Format(CultureInfo.CurrentCulture, "{0:G}", value);
+                    if (double.TryParse(d, NumberStyles.Any, CultureInfo.CurrentCulture, out var result))
                     {
-                        return max;
-                    }
+                        var maxs = string.Format(CultureInfo.CurrentCulture, "{0:G}", MaximumValue);
+                        if (double.TryParse(maxs, NumberStyles.Any, CultureInfo.CurrentCulture, out var max) && result > max)
+                        {
+                            return max;
+                        }
 
-                    var mins = string.Format(CultureInfo.CurrentCulture, "{0:G}", MinimumValue);
-                    if (double.TryParse(mins, NumberStyles.Any, CultureInfo.CurrentCulture, out var min) && result < min)
-                    {
-                        return min;
+                        var mins = string.Format(CultureInfo.CurrentCulture, "{0:G}", MinimumValue);
+                        if (double.TryParse(mins, NumberStyles.Any, CultureInfo.CurrentCulture, out var min) && result < min)
+                        {
+                            return min;
+                        }
                     }
                 }
-            }
                 break;
         }
 
@@ -591,7 +594,7 @@ public class NumericTextBox : TextBoxEx
     private bool IsValueBoundTypeNullable()
     {
         var type = GetNumericValueBoundType();
-        if (type is {IsGenericType: true} && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+        if (type is { IsGenericType: true } && type.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
             return true;
         }

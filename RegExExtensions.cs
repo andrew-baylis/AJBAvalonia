@@ -16,11 +16,11 @@ public static class RegExExtensions
 
     public static readonly Regex anyCurrency = new(@"^[+-]?\p{Sc}?(\d*(\.\d{0,2})?)$", RegexOptions.Compiled);
     public static readonly Regex anyDouble = new(@"^[+-]?(\d*(\.\d*)?)$", RegexOptions.Compiled);
-    public static readonly Regex anyInteger = new(@"^[+-]?[0-9]?$", RegexOptions.Compiled);
+    public static readonly Regex anyInteger = new(@"^[+-]?\d*$", RegexOptions.Compiled);
     public static readonly Regex emailRegex = new(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", RegexOptions.Compiled);
     public static readonly Regex positiveCurrency = new(@"^\p{Sc}?(\d*(\.\d{0,2})?)$", RegexOptions.Compiled);
     public static readonly Regex positiveDouble = new(@"^(\d*(\.\d*)?)$", RegexOptions.Compiled);
-    public static readonly Regex positiveInteger = new(@"^[0-9]?$", RegexOptions.Compiled);
+    public static readonly Regex positiveInteger = new(@"^\d*$", RegexOptions.Compiled);
     public static readonly Regex time12hrClock = new(@"^(?<hour>1[0-2]|0?[0-9])(?::(?<minute>[0-5]?[0-9])?(?::(?<seconds>[0-5]?[0-9])?)?)?\s*(?<ampm>[AaPp][Mm]?)?$$",
                                                      RegexOptions.Compiled);
     public static readonly Regex time24hrClock = new(@"^(?<hour>2[0-3]|1[0-2]|0?[0-9])(?::(?<minute>[0-5]?[0-9])?(?::(?<seconds>[0-5]?[0-9])?)?)?$", RegexOptions.Compiled);

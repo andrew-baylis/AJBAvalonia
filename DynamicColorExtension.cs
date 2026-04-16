@@ -5,7 +5,6 @@
 #region using
 
 using Avalonia;
-using Avalonia.Data;
 using Avalonia.Media;
 
 #endregion
@@ -92,10 +91,10 @@ public class DynamicColorExtension : AvaloniaObject
 
     #region Public Methods
 
-    public IBinding ProvideValue(IServiceProvider serviceProvider)
+    public Color ProvideValue(IServiceProvider serviceProvider)
     {
         //return this.ToBinding();
-        return new Binding(nameof(ModifiedColor)) {Source = this};
+        return ModifiedColor;
     }
 
     #endregion
@@ -127,7 +126,7 @@ public class DynamicColorExtension : AvaloniaObject
 
     private void DoUpdateColor()
     {
-        if (Color is {A: > 0})
+        if (Color is { A: > 0 })
         {
             ModifiedColor = MakeNewColor(Color.Value);
         }
@@ -141,7 +140,7 @@ public class DynamicColorExtension : AvaloniaObject
         var hue = hsl.H;
         if (SaturationPercent < 0)
         {
-            saturation = saturation - (1 - saturation) * SaturationPercent / 100d; //- as saturationpercent is negative
+            saturation -= ((1 - saturation) * SaturationPercent / 100d); //- as saturationpercent is negative
         }
         else
         {
@@ -150,7 +149,7 @@ public class DynamicColorExtension : AvaloniaObject
 
         if (HuePercent < 0)
         {
-            hue = hue - (360 - hue) * HuePercent / 100d;
+            hue -= ((360 - hue) * HuePercent / 100d);
         }
         else
         {
@@ -159,7 +158,7 @@ public class DynamicColorExtension : AvaloniaObject
 
         if (LuminancePercent < 0)
         {
-            luminance = luminance - (1 - luminance) * LuminancePercent / 100d;
+            luminance -= ((1 - luminance) * LuminancePercent / 100d);
         }
         else
         {

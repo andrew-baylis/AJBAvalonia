@@ -61,12 +61,12 @@ public readonly struct EnumDesc : IEquatable<EnumDesc>
 
             if (Value != null)
             {
-                hash = hash * 31 + Value.GetHashCode();
+                hash = (hash * 31) + Value.GetHashCode();
             }
 
             if (!string.IsNullOrEmpty(Description))
             {
-                hash = hash * 31 + Description.GetHashCode();
+                hash = (hash * 31) + Description.GetHashCode();
             }
 
             return hash;

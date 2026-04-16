@@ -4,9 +4,9 @@
 
 #region using
 
-using System.Reflection;
 using Avalonia;
 using Avalonia.Data;
+using System.Reflection;
 
 #endregion
 
@@ -28,6 +28,27 @@ public static class BindingExtensions
             }
         }
 
+        return null;
+    }
+
+    public static object? GetTargetObjectForBinding(this AvaloniaObject element, AvaloniaProperty property)
+    {
+        var b = BindingOperations.GetBindingExpressionBase(element, property);
+        if (b != null)
+        {
+            var targetObjectMethodInfo = b.GetType().GetMethod("TryGetTarget", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null,
+                [typeof(object).MakeByRefType()], null);
+            if (targetObjectMethodInfo != null)
+            {
+                var p = new object?[] { null };
+                var result = targetObjectMethodInfo.Invoke(b, p);
+                if (result is bool bResult && bResult)
+                {
+                    return p[0];
+                }
+            }
+        }
         return null;
     }
 

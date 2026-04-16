@@ -7,8 +7,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
+using System.Globalization;
 
 #endregion
 
@@ -17,6 +19,22 @@ namespace AJBAvalonia;
 public static class VisualExtensions
 {
     #region Static Methods
+
+    public static Bitmap? ConvertToBitmap(this WindowIcon icon)
+    {
+        using var stream = new MemoryStream();
+        icon.Save(stream);
+        stream.Position = 0;
+        return new Bitmap(stream);
+    }
+
+    public static WindowIcon? ConvertToIcon(this Bitmap bitmap)
+    {
+        using var stream = new MemoryStream();
+        bitmap.Save(stream);
+        stream.Position = 0;
+        return new WindowIcon(stream);
+    }
 
     public static List<T> GetAllChildrenOfType<T>(this Visual control)
     {
@@ -82,6 +100,59 @@ public static class VisualExtensions
         return default;
     }
 
+    public static Size GetTextDimensions(string textToFormat, string fontFamilyName, double emSize, FlowDirection flowDirection = FlowDirection.LeftToRight)
+    {
+        return GetTextDimensions(textToFormat, new Typeface(fontFamilyName), emSize, flowDirection);
+    }
+
+    public static Size GetTextDimensions(string textToFormat, Typeface fontTypeFamily, double emSize, FlowDirection flowDirection = FlowDirection.LeftToRight)
+    {
+        try
+        {
+            var formattedText = new FormattedText(textToFormat, CultureInfo.CurrentCulture, flowDirection, fontTypeFamily, emSize, null);
+
+            return new Size(formattedText.Width, formattedText.Height);
+        }
+        catch
+        {
+            return new Size(0, 0);
+        }
+    }
+
+    public static Size GetTextDimensions(string textToFormat, FontFamily fontFamily, double emSize, FlowDirection flowDirection = FlowDirection.LeftToRight)
+    {
+        var tfList = fontFamily.FamilyTypefaces;
+        Typeface? tf = null;
+        foreach (var f in tfList)
+        {
+            if (f.Style == FontStyle.Normal && f.Weight == FontWeight.Normal)
+            {
+                tf = f;
+                break;
+            }
+        }
+
+        if (tf == null)
+        {
+            tfList = FontManager.Current.DefaultFontFamily.FamilyTypefaces;
+            foreach (var f in tfList)
+            {
+                if (f.Style == FontStyle.Normal && f.Weight == FontWeight.Normal)
+                {
+                    tf = f;
+                    break;
+                }
+            }
+        }
+
+        if (tf != null)
+        {
+            return GetTextDimensions(textToFormat, tf.Value, emSize, flowDirection);
+        }
+
+        return new Size(0, 0);
+    }
+
     public static T? GetVisualParent<T>(this Visual visual) where T : Visual
     {
         var p = visual.GetVisualParent();
@@ -91,22 +162,6 @@ public static class VisualExtensions
         }
 
         return p as T;
-    }
-
-    public static Bitmap? ConvertToBitmap(this WindowIcon icon)
-    {
-        using var stream = new MemoryStream();
-        icon.Save(stream);
-        stream.Position = 0;
-        return new Bitmap(stream);
-    }
-
-    public static WindowIcon? ConvertToIcon(this Bitmap bitmap)
-    {
-        using var stream = new MemoryStream();
-        bitmap.Save(stream);
-        stream.Position = 0;
-        return new WindowIcon(stream);
     }
 
     #endregion

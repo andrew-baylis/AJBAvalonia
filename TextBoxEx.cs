@@ -4,7 +4,6 @@
 
 #region using
 
-using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -12,6 +11,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using System.ComponentModel;
 
 #endregion
 
@@ -141,7 +141,7 @@ public class TextBoxEx : TextBox
                     return default;
                 }
 
-                return (T) val;
+                return (T)val;
             }
             catch
             {
@@ -202,11 +202,11 @@ public class TextBoxEx : TextBox
     ///     Handles when the control receives focus.
     /// </summary>
     /// <param name="e">Got focus event args.</param>
-    protected override void OnGotFocus(GotFocusEventArgs e)
+    protected override void OnGotFocus(FocusChangedEventArgs e)
     {
         base.OnGotFocus(e);
         _focusByPointer = e.NavigationMethod == NavigationMethod.Pointer;
-        if (!_focusByPointer && SelectAllOnGetFocus)
+        if (!_focusByPointer && SelectAllOnGetFocus && ReferenceEquals(e.NewFocusedElement, this))
         {
             SelectAll();
         }
@@ -230,12 +230,11 @@ public class TextBoxEx : TextBox
 
             if (v != null)
             {
-                var f = ((TopLevel) v).FocusManager;
-                var current = f?.GetFocusedElement();
+                var f = ((TopLevel)v).FocusManager;
+                var current = f.GetFocusedElement();
                 if (current != null)
                 {
-                    var next = KeyboardNavigationHandler.GetNext(current, NavigationDirection.Next);
-                    next?.Focus(NavigationMethod.Tab);
+                    f.TryMoveFocus(NavigationDirection.Next);
                 }
             }
         }
@@ -245,7 +244,7 @@ public class TextBoxEx : TextBox
     ///     Handles lost focus event to reset pointer focus flag.
     /// </summary>
     /// <param name="e">Routed event args.</param>
-    protected override void OnLostFocus(RoutedEventArgs e)
+    protected override void OnLostFocus(FocusChangedEventArgs e)
     {
         base.OnLostFocus(e);
         _focusByPointer = false;

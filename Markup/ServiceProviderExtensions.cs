@@ -24,14 +24,9 @@ internal static class ServiceProviderExtensions
         // If the target is not a control, so we need to find an anchor that will let us look
         // up named controls and style resources. First look for the closest Control in
         // the context.
-        object? anchor = provider.GetFirstParent<Control>();
-
-        if (anchor is null)
-        {
-            // Try to find IDataContextProvider, this was added to allow us to find
-            // a datacontext for Application class when using NativeMenuItems.
-            anchor = provider.GetFirstParent<IDataContextProvider>();
-        }
+        // Try to find IDataContextProvider, this was added to allow us to find
+        // a datacontext for Application class when using NativeMenuItems.
+        object? anchor = provider.GetFirstParent<Control>() ?? provider.GetFirstParent<IDataContextProvider>();
 
         // If a control was not found, then try to find the highest-level style as the XAML
         // file could be a XAML file containing only styles.
@@ -50,7 +45,7 @@ internal static class ServiceProviderExtensions
 
     public static IEnumerable<T> GetParents<T>(this IServiceProvider sp)
     {
-        return sp.GetService<IAvaloniaXamlIlParentStackProvider>()?.Parents.OfType<T>() ?? Enumerable.Empty<T>();
+        return sp.GetService<IAvaloniaXamlIlParentStackProvider>()?.Parents.OfType<T>() ?? [];
     }
 
     public static T GetRequiredService<T>(this IServiceProvider sp)
@@ -60,7 +55,7 @@ internal static class ServiceProviderExtensions
 
     public static T? GetService<T>(this IServiceProvider sp)
     {
-        return (T?) sp.GetService(typeof(T));
+        return (T?)sp.GetService(typeof(T));
     }
 
     public static bool IsInControlTemplate(this IServiceProvider sp)

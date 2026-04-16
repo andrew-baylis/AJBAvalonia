@@ -30,6 +30,18 @@ public static class FileDialogExtensions
         return await OpenFileDialog(storageProvider, title, filters, startFolder);
     }
 
+    public static async Task<string> OpenFileDialog(string title, WellKnownFolder startFolder, string? filters = null)
+    {
+        var storageProvider = GetStorageProvider();
+        return await OpenFileDialog(storageProvider, title, filters, startFolder);
+    }
+
+    public static async Task<string> OpenFileDialog(Control source, string title, WellKnownFolder startFolder, string? filters = null)
+    {
+        var storageProvider = GetStorageProvider(source);
+        return await OpenFileDialog(storageProvider, title, filters, startFolder);
+    }
+
     public static async Task<string> OpenFileImageDialog(string title, string? filters = null, string? startFolder = null)
     {
         if (string.IsNullOrEmpty(filters))
@@ -38,6 +50,26 @@ public static class FileDialogExtensions
         }
 
         return await OpenFileDialog(title, filters, startFolder);
+    }
+
+    public static async Task<string> OpenFileImageDialog(Control source, string title, WellKnownFolder startFolder, string? filters = null)
+    {
+        if (string.IsNullOrEmpty(filters))
+        {
+            filters = @"All Image types|*.bmp,*gif,*.png,*.jpg,*.jpeg|Bitmap|*.bmp|GIF|*.gif|JPEG|*.jpg,*.jpeg|PNG|*.png|All files|*.*";
+        }
+
+        return await OpenFileDialog(source, title, startFolder, filters);
+    }
+
+    public static async Task<string> OpenFileImageDialog(string title, WellKnownFolder startFolder, string? filters = null)
+    {
+        if (string.IsNullOrEmpty(filters))
+        {
+            filters = @"All Image types|*.bmp,*gif,*.png,*.jpg,*.jpeg|Bitmap|*.bmp|GIF|*.gif|JPEG|*.jpg,*.jpeg|PNG|*.png|All files|*.*";
+        }
+
+        return await OpenFileDialog(title, startFolder, filters);
     }
 
     public static async Task<string> OpenFileImageDialog(Control source, string title, string? filters = null, string? startFolder = null)
@@ -53,10 +85,10 @@ public static class FileDialogExtensions
     public static async Task<string> OpenFolderDialog(string title, string? startFolder = null)
     {
         var storageProvider = GetStorageProvider();
-        if (storageProvider is {CanPickFolder: true})
+        if (storageProvider is { CanPickFolder: true })
         {
             var startUri = !string.IsNullOrEmpty(startFolder) ? await storageProvider.TryGetFolderFromPathAsync(startFolder) : null;
-            var files = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions {Title = title, AllowMultiple = false, SuggestedStartLocation = startUri});
+            var files = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = title, AllowMultiple = false, SuggestedStartLocation = startUri });
 
             return files[0].Path.AbsolutePath;
         }
@@ -64,17 +96,46 @@ public static class FileDialogExtensions
         return string.Empty;
     }
 
-    public static async Task<string> SaveFileDialog(string title, string? defaultExtension, bool? showOverwritePrompt = true, string? filters = null, string? startFolder = null)
+    public static async Task<string> OpenFolderDialog(string title, WellKnownFolder startFolder)
     {
         var storageProvider = GetStorageProvider();
-        return await SaveFileDialog(storageProvider, title, defaultExtension, showOverwritePrompt, filters, startFolder);
+        if (storageProvider is { CanPickFolder: true })
+        {
+            var startUri = await storageProvider.TryGetWellKnownFolderAsync(startFolder);
+            var files = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = title, AllowMultiple = false, SuggestedStartLocation = startUri });
+
+            return files[0].Path.AbsolutePath;
+        }
+
+        return string.Empty;
     }
 
-    public static async Task<string> SaveFileDialog(Control source, string title, string? defaultExtension, bool? showOverwritePrompt = true, string? filters = null,
-        string? startFolder = null)
+    public static async Task<string> SaveFileDialog(string title, string? defaultExtension, string? startFolder = null, bool? showOverwritePrompt = true, string? filters = null,
+        string? suggestedFilename = null)
+    {
+        var storageProvider = GetStorageProvider();
+        return await SaveFileDialog(storageProvider, title, defaultExtension, showOverwritePrompt, filters, startFolder, suggestedFilename);
+    }
+
+    public static async Task<string> SaveFileDialog(string title, string? defaultExtension, WellKnownFolder startFolder, bool? showOverwritePrompt = true, string? filters = null,
+        string? suggestedFilename = null)
+    {
+        var storageProvider = GetStorageProvider();
+        return await SaveFileDialog(storageProvider, title, defaultExtension, showOverwritePrompt, filters, startFolder, suggestedFilename);
+    }
+
+    public static async Task<string> SaveFileDialog(Control source, string title, string? defaultExtension, string? startFolder = null, bool? showOverwritePrompt = true,
+        string? filters = null, string? suggestedFilename = null)
     {
         var storageProvider = GetStorageProvider(source);
-        return await SaveFileDialog(storageProvider, title, defaultExtension, showOverwritePrompt, filters, startFolder);
+        return await SaveFileDialog(storageProvider, title, defaultExtension, showOverwritePrompt, filters, startFolder, suggestedFilename);
+    }
+
+    public static async Task<string> SaveFileDialog(Control source, string title, string? defaultExtension, WellKnownFolder startFolder, bool? showOverwritePrompt = true,
+        string? filters = null, string? suggestedFilename = null)
+    {
+        var storageProvider = GetStorageProvider(source);
+        return await SaveFileDialog(storageProvider, title, defaultExtension, showOverwritePrompt, filters, startFolder, suggestedFilename);
     }
 
     private static IStorageProvider? GetStorageProvider(Control source)
@@ -87,37 +148,44 @@ public static class FileDialogExtensions
     {
         return Application.Current?.ApplicationLifetime switch
         {
-            IClassicDesktopStyleApplicationLifetime {MainWindow: not null} desktopLifetime => GetStorageProvider(desktopLifetime.MainWindow),
-            ISingleViewApplicationLifetime {MainView: not null} singleViewPlatform => GetStorageProvider(singleViewPlatform.MainView),
+            IClassicDesktopStyleApplicationLifetime { MainWindow: not null } desktopLifetime => GetStorageProvider(desktopLifetime.MainWindow),
+            ISingleViewApplicationLifetime { MainView: not null } singleViewPlatform => GetStorageProvider(singleViewPlatform.MainView),
             _ => null
         };
     }
 
-    private static async Task<string> OpenFileDialog(IStorageProvider? storageProvider, string title, string? filters = null, string? startFolder = null)
+    private static List<FilePickerFileType> MakeFilterList(string? filters)
     {
-        if (storageProvider is {CanOpen: true})
+        var filterList = new List<FilePickerFileType>();
+        if (!string.IsNullOrEmpty(filters))
         {
-            var filterList = new List<FilePickerFileType>();
-            if (!string.IsNullOrEmpty(filters))
+            var splitFilters = filters.Split('|');
+            var i = 0;
+            while (i < splitFilters.Length)
             {
-                var splitFilters = filters.Split('|');
-                var i = 0;
-                while (i < splitFilters.Length)
+                var text = splitFilters[i++];
+                if (i < splitFilters.Length)
                 {
-                    var text = splitFilters[i++];
-                    if (i < splitFilters.Length)
-                    {
-                        var filter = splitFilters[i++];
-                        var filtersplit = filter.Split(';', ',');
-                        filterList.Add(new FilePickerFileType(text) {Patterns = filtersplit});
-                    }
+                    var filter = splitFilters[i++];
+                    var filtersplit = filter.Split(';', ',');
+                    filterList.Add(new FilePickerFileType(text) { Patterns = filtersplit });
                 }
             }
+        }
 
-            if (!filterList.Any())
-            {
-                filterList.Add(new FilePickerFileType("All Files") {Patterns = new[] {"*.*"}});
-            }
+        if (filterList.Count == 0)
+        {
+            filterList.Add(new FilePickerFileType("All Files") { Patterns = ["*.*"] });
+        }
+
+        return filterList;
+    }
+
+    private static async Task<string> OpenFileDialog(IStorageProvider? storageProvider, string title, string? filters = null, string? startFolder = null)
+    {
+        if (storageProvider is { CanOpen: true })
+        {
+            var filterList = MakeFilterList(filters);
 
             var startUri = !string.IsNullOrEmpty(startFolder) ? await storageProvider.TryGetFolderFromPathAsync(startFolder) : null;
             var files = await Dispatcher.UIThread.InvokeAsync(async () => await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
@@ -133,7 +201,47 @@ public static class FileDialogExtensions
             //});
             if (files.Any())
             {
-                return files[0].Path.AbsolutePath;
+                var filename = files[0].Path.AbsolutePath;
+                if (!string.IsNullOrEmpty(filename))
+                {
+                    filename = filename.Replace("%20", " ");
+                }
+
+                return filename;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static async Task<string> OpenFileDialog(IStorageProvider? storageProvider, string title, string? filters = null,
+        WellKnownFolder startFolder = WellKnownFolder.Documents)
+    {
+        if (storageProvider is { CanOpen: true })
+        {
+            var filterList = MakeFilterList(filters);
+
+            var startUri = await storageProvider.TryGetWellKnownFolderAsync(startFolder);
+            var files = await Dispatcher.UIThread.InvokeAsync(async () => await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                AllowMultiple = false,
+                Title = title,
+                FileTypeFilter = filterList,
+                SuggestedStartLocation = startUri
+            }));
+            //var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            //{
+            //    AllowMultiple = false, Title = title, FileTypeFilter = filterList, SuggestedStartLocation = startUri
+            //});
+            if (files.Any())
+            {
+                var filename = files[0].Path.AbsolutePath;
+                if (!string.IsNullOrEmpty(filename))
+                {
+                    filename = filename.Replace("%20", " ");
+                }
+
+                return filename;
             }
         }
 
@@ -141,30 +249,11 @@ public static class FileDialogExtensions
     }
 
     private static async Task<string> SaveFileDialog(IStorageProvider? storageProvider, string title, string? defaultExtension, bool? showOverwritePrompt = true,
-        string? filters = null, string? startFolder = null)
+        string? filters = null, string? startFolder = null, string? suggestedFilename = null)
     {
-        if (storageProvider is {CanSave: true})
+        if (storageProvider is { CanSave: true })
         {
-            var filterList = new List<FilePickerFileType>();
-            if (!string.IsNullOrEmpty(filters))
-            {
-                var splitFilters = filters.Split('|');
-                var i = 0;
-                while (i < splitFilters.Length)
-                {
-                    var text = splitFilters[i++];
-                    if (i < splitFilters.Length)
-                    {
-                        var filter = splitFilters[i++];
-                        filterList.Add(new FilePickerFileType(text) {Patterns = new[] {filter}});
-                    }
-                }
-            }
-
-            if (!filterList.Any())
-            {
-                filterList.Add(new FilePickerFileType("All Files") {Patterns = new[] {"*.*"}});
-            }
+            var filterList = MakeFilterList(filters);
 
             var startUri = !string.IsNullOrEmpty(startFolder) ? await storageProvider.TryGetFolderFromPathAsync(startFolder) : null;
             var files = await Dispatcher.UIThread.InvokeAsync(async () => await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
@@ -173,11 +262,50 @@ public static class FileDialogExtensions
                 Title = title,
                 FileTypeChoices = filterList,
                 ShowOverwritePrompt = showOverwritePrompt,
-                SuggestedStartLocation = startUri
+                SuggestedStartLocation = startUri,
+                SuggestedFileName = suggestedFilename
             }));
             if (files != null)
             {
-                return files.Path.AbsolutePath;
+                var filename = files.Path.AbsolutePath;
+                if (!string.IsNullOrEmpty(filename))
+                {
+                    filename = filename.Replace("%20", " ");
+                }
+
+                return filename;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static async Task<string> SaveFileDialog(IStorageProvider? storageProvider, string title, string? defaultExtension, bool? showOverwritePrompt = true,
+        string? filters = null, WellKnownFolder startFolder = WellKnownFolder.Documents, string? suggestedFilename = null)
+    {
+        if (storageProvider is { CanSave: true })
+        {
+            var filterList = MakeFilterList(filters);
+
+            var startUri = await storageProvider.TryGetWellKnownFolderAsync(startFolder);
+            var files = await Dispatcher.UIThread.InvokeAsync(async () => await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                DefaultExtension = defaultExtension,
+                Title = title,
+                FileTypeChoices = filterList,
+                ShowOverwritePrompt = showOverwritePrompt,
+                SuggestedStartLocation = startUri,
+                SuggestedFileName = suggestedFilename
+            }));
+            if (files != null)
+            {
+                var filename = files.Path.AbsolutePath;
+                if (!string.IsNullOrEmpty(filename))
+                {
+                    filename = filename.Replace("%20", " ");
+                }
+
+                return filename;
             }
         }
 

@@ -1,5 +1,5 @@
 ﻿// AutoGreyableImage.cs
-// Andrew Baylis
+//  Andrew Baylis
 //  Created: 20/01/2024
 
 #region using
@@ -21,7 +21,7 @@ namespace AJBAvalonia;
 
 public class AutoGreyableImage : Control
 {
-    #region Fields
+    #region Avalonia Properties
 
     public static readonly StyledProperty<double> GreyOpacityProperty = AvaloniaProperty.Register<AutoGreyableImage, double>(nameof(GreyOpacity), 1.0f);
 
@@ -41,8 +41,12 @@ public class AutoGreyableImage : Control
     /// </summary>
     public static readonly StyledProperty<Stretch> StretchProperty = AvaloniaProperty.Register<AutoGreyableImage, Stretch>(nameof(Stretch), Stretch.Uniform);
 
-    private readonly float[] greyScale =
-    {
+    #endregion
+
+    #region Fields
+
+    private readonly float[] _greyScale =
+    [
         0.2126f,
         0.7152f,
         0.0722f,
@@ -63,7 +67,7 @@ public class AutoGreyableImage : Control
         0,
         1,
         0 // alpha channel weights
-    };
+    ];
 
     private Bitmap? _greyImage;
 
@@ -122,7 +126,7 @@ public class AutoGreyableImage : Control
 
     #endregion
 
-    #region Override Methods
+    #region Public Methods
 
     /// <summary>
     ///     Renders the control.
@@ -132,7 +136,7 @@ public class AutoGreyableImage : Control
     {
         var source = IsEffectivelyEnabled ? Source : _greyImage;
 
-        if (source != null && Bounds is {Width: > 0, Height: > 0})
+        if (source != null && Bounds is { Width: > 0, Height: > 0 })
         {
             var viewPort = new Rect(Bounds.Size);
             var sourceSize = source.Size;
@@ -145,6 +149,10 @@ public class AutoGreyableImage : Control
             context.DrawImage(source, sourceRect, destRect);
         }
     }
+
+    #endregion
+
+    #region Protected Methods
 
     /// <inheritdoc />
     protected override Size ArrangeOverride(Size finalSize)
@@ -159,6 +167,43 @@ public class AutoGreyableImage : Control
         }
 
         return new Size();
+    }
+
+    protected Bitmap? MakeGreyScaleImage(Bitmap autoGreyScaleImg, float greyOpacity = 1.0f)
+    {
+        try
+        {
+            var matrix = new float[20];
+            Array.Copy(_greyScale, matrix, 20);
+            matrix[18] = greyOpacity;
+            using var ms = new MemoryStream();
+            autoGreyScaleImg.Save(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            using var bitmap = SKBitmap.Decode(ms);
+            var info = new SKImageInfo((int)autoGreyScaleImg.Size.Width, (int)autoGreyScaleImg.Size.Height);
+            using var surface = SKSurface.Create(info);
+            var canvas = surface.Canvas;
+
+            using var paint = new SKPaint();
+
+            // Define a grayscale color filter to apply to the image
+
+            paint.ColorFilter = SKColorFilter.CreateColorMatrix(matrix);
+
+            // redraw the image using the color filter
+            canvas.DrawBitmap(bitmap, 0, 0, paint);
+            using var image = surface.Snapshot();
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var memoryStream = new MemoryStream(data.ToArray());
+            var bm = new Bitmap(memoryStream);
+            return bm;
+        }
+        catch (Exception)
+        {
+            // nothing
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -201,47 +246,6 @@ public class AutoGreyableImage : Control
 
     #endregion
 
-    #region Protected Methods
-
-    protected Bitmap? MakeGreyScaleImage(Bitmap autoGreyScaleImg, float greyOpacity = 1.0f)
-    {
-        try
-        {
-            var matrix = new float[20];
-            Array.Copy(greyScale, matrix, 20);
-            matrix[18] = greyOpacity;
-            using var ms = new MemoryStream();
-            autoGreyScaleImg.Save(ms);
-            ms.Seek(0, SeekOrigin.Begin);
-            using var bitmap = SKBitmap.Decode(ms);
-            var info = new SKImageInfo((int) autoGreyScaleImg.Size.Width, (int) autoGreyScaleImg.Size.Height);
-            using var surface = SKSurface.Create(info);
-            var canvas = surface.Canvas;
-
-            using var paint = new SKPaint();
-
-            // Define a grayscale color filter to apply to the image
-
-            paint.ColorFilter = SKColorFilter.CreateColorMatrix(matrix);
-
-            // redraw the image using the color filter
-            canvas.DrawBitmap(bitmap, 0, 0, paint);
-            using var image = surface.Snapshot();
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            using var memoryStream = new MemoryStream(data.ToArray());
-            var bm = new Bitmap(memoryStream);
-            return bm;
-        }
-        catch (Exception)
-        {
-            // nothing
-        }
-
-        return null;
-    }
-
-    #endregion
-
     #region Private Methods
 
     private void AutoGreyableImage_Loaded(object? sender, RoutedEventArgs e)
@@ -253,7 +257,7 @@ public class AutoGreyableImage : Control
     {
         if (Source is Bitmap image)
         {
-            _greyImage = MakeGreyScaleImage(image, (float) GreyOpacity);
+            _greyImage = MakeGreyScaleImage(image, (float)GreyOpacity);
         }
         else
         {

@@ -4,12 +4,6 @@
 
 #region using
 
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -17,6 +11,12 @@ using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
+using System.Collections;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 #endregion
 
@@ -80,9 +80,9 @@ public class SideBySideListSelect : TemplatedControl
     /// </summary>
     public SideBySideListSelect()
     {
-        LeftItems = new SortedListCollection<object>();
+        LeftItems = [];
         LeftItems.CollectionChanged += (s, e) => { CheckCanAddLeftRight(); };
-        RightItems = new SortedListCollection<object>();
+        RightItems = [];
         RightItems.CollectionChanged += (s, e) => { CheckCanAddRightLeft(); };
     }
 
@@ -113,7 +113,7 @@ public class SideBySideListSelect : TemplatedControl
     /// <summary>
     ///     Gets classes applied to headers for styling.
     /// </summary>
-    public Classes HeaderClasses { get; } = new();
+    public Classes HeaderClasses { get; } = [];
 
     /// <summary>
     ///     Gets or sets the header font style.
@@ -380,28 +380,16 @@ public class SideBySideListSelect : TemplatedControl
         }
 
         _btnMoveLeft = e.NameScope.Find<Button>("btnMoveLeft");
-        if (_btnMoveLeft != null)
-        {
-            _btnMoveLeft.Click += (_, _) => AddLeftToRightExecute();
-        }
+        _btnMoveLeft?.Click += (_, _) => AddLeftToRightExecute();
 
         _btnMoveAllLeft = e.NameScope.Find<Button>("btnMoveAllLeft");
-        if (_btnMoveAllLeft != null)
-        {
-            _btnMoveAllLeft.Click += (_, _) => AddAllLeftToRightExecute();
-        }
+        _btnMoveAllLeft?.Click += (_, _) => AddAllLeftToRightExecute();
 
         _btnMoveAllRight = e.NameScope.Find<Button>("btnMoveAllRight");
-        if (_btnMoveAllRight != null)
-        {
-            _btnMoveAllRight.Click += (_, _) => AddAllRightToLeftExecute();
-        }
+        _btnMoveAllRight?.Click += (_, _) => AddAllRightToLeftExecute();
 
         _btnMoveRight = e.NameScope.Find<Button>("btnMoveRight");
-        if (_btnMoveRight != null)
-        {
-            _btnMoveRight.Click += (_, _) => AddRightToLeftExecute();
-        }
+        _btnMoveRight?.Click += (_, _) => AddRightToLeftExecute();
 
         InternalSetDisplayBinding();
     }
@@ -676,7 +664,7 @@ public class SideBySideListSelect : TemplatedControl
                     // Perform sorting using the specified property
                     if (_sortProp != null)
                     {
-                        ArrayList.Adapter((IList) Items).Sort(Comparer<T>.Create((x, y) => _sortComparer.Compare(x, y)));
+                        ArrayList.Adapter((IList)Items).Sort(Comparer<T>.Create((x, y) => _sortComparer.Compare(x, y)));
                     }
                 }
                 finally
