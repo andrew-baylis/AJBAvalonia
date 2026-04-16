@@ -3,7 +3,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ab="https://github.com/ajbavalonia">
     <!--  Add Resources Here  -->
-    <ControlTheme x:Key="{x:Type ab:FileSelectControl}" TargetType="{x:Type ab:FileSelectControl}">
+    <ControlTheme
+        x:Key="{x:Type ab:FileSelectControl}"
+        TargetType="{x:Type ab:FileSelectControl}">
         <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -39,7 +41,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             IsReadOnly="True"
-                            Watermark="Select file name..." />
+                            PlaceholderText="{TemplateBinding PlaceholderText}" />
                     </DockPanel>
                 </Border>
             </ControlTemplate>

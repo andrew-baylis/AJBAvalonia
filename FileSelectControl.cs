@@ -54,7 +54,7 @@ public class FileSelectControl : TemplatedControl
     public static readonly StyledProperty<string?> TextProperty =
         AvaloniaProperty.Register<FileSelectControl, string?>(nameof(Text), defaultBindingMode: BindingMode.TwoWay, enableDataValidation: true);
 
-    public static readonly StyledProperty<string?> WatermarkTextProperty = AvaloniaProperty.Register<FileSelectControl, string?>(nameof(WatermarkText));
+    public static readonly StyledProperty<string?> PlaceholderTextProperty = AvaloniaProperty.Register<FileSelectControl, string?>(nameof(PlaceholderText), "Select file ...");
 
     #endregion
 
@@ -126,10 +126,10 @@ public class FileSelectControl : TemplatedControl
         set => SetValue(TextProperty, value);
     }
 
-    public string? WatermarkText
+    public string? PlaceholderText
     {
-        get => GetValue(WatermarkTextProperty);
-        set => SetValue(WatermarkTextProperty, value);
+        get => GetValue(PlaceholderTextProperty);
+        set => SetValue(PlaceholderTextProperty, value);
     }
 
     #endregion
@@ -152,7 +152,7 @@ public class FileSelectControl : TemplatedControl
         _fileNameEdit = e.NameScope.Find<TextBox>("fileNameEdit");
         if (_fileNameEdit != null)
         {
-            _fileNameEdit.PlaceholderText = WatermarkText;
+            _fileNameEdit.PlaceholderText = PlaceholderText;
             _fileNameEdit.HorizontalContentAlignment = HorizontalContentAlignment;
             _fileNameEdit.PointerPressed += FileNameEditOnPointerPressed;
         }
