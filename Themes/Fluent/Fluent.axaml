@@ -1,6 +1,20 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>
         <ResourceDictionary>
+            <RadialGradientBrush x:Key="GreenIndicatorBrush" GradientOrigin="0.1,0.1" >
+                <RadialGradientBrush.GradientStops>
+                    <GradientStop Offset="0" Color="#5FEA5F" />
+                    <GradientStop Offset="1" Color="Green" />
+                </RadialGradientBrush.GradientStops>
+            </RadialGradientBrush>
+            
+            <RadialGradientBrush x:Key="RedIndicatorBrush" GradientOrigin="0.1,0.1" >
+                <RadialGradientBrush.GradientStops>
+                    <GradientStop Offset="0" Color="#D62C0D" />
+                    <GradientStop Offset="1" Color="Red" />
+                </RadialGradientBrush.GradientStops>
+            </RadialGradientBrush>
+            
             <ResourceDictionary.MergedDictionaries>
                 <!--  Controls  -->
                 <MergeResourceInclude Source="/Themes/Fluent/ComboBoxEx.axaml" />
@@ -12,6 +26,7 @@
                 <MergeResourceInclude Source="/Themes/Fluent/SideBySideListSelect.axaml" />
                 <MergeResourceInclude Source="/Themes/Fluent/FileSelectControl.axaml" />
                 <MergeResourceInclude Source="/Themes/Fluent/WindowEx.axaml" />
+                <MergeResourceInclude Source="/Themes/Fluent/Indicator.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Styles.Resources>

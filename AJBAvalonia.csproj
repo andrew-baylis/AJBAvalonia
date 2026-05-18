@@ -3,7 +3,7 @@
         <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>3.7.0</Version>
+        <Version>3.7.7</Version>
         <LangVersion>latest</LangVersion>
         <Title>Avalonia Controls - AJB</Title>
         <Description>Some controls for Avalonia: GroupBox, ComboBoxEx, TextBoxEx, RadioGroup, RadioCheckEnumGroup, SideBySideList and DropControl</Description>
@@ -18,15 +18,19 @@
         <AvaloniaXaml Remove="CustomTypeObjects\**" />
         <AvaloniaXaml Remove="TestAvControls.Desktop\**" />
         <AvaloniaXaml Remove="TestAvControls\**" />
+        <AvaloniaXaml Remove="TestControls\**" />
         <Compile Remove="CustomTypeObjects\**" />
         <Compile Remove="TestAvControls.Desktop\**" />
         <Compile Remove="TestAvControls\**" />
+        <Compile Remove="TestControls\**" />
         <EmbeddedResource Remove="CustomTypeObjects\**" />
         <EmbeddedResource Remove="TestAvControls.Desktop\**" />
         <EmbeddedResource Remove="TestAvControls\**" />
+        <EmbeddedResource Remove="TestControls\**" />
         <None Remove="CustomTypeObjects\**" />
         <None Remove="TestAvControls.Desktop\**" />
         <None Remove="TestAvControls\**" />
+        <None Remove="TestControls\**" />
     </ItemGroup>
 
     <ItemGroup>
@@ -61,7 +65,7 @@
     </ItemGroup>
 
     <Target Name="CopyPackage" AfterTargets="Pack">
-        <Copy SourceFiles="$(PackageOutputPath)$(PackageId).$(PackageVersion).nupkg" DestinationFolder="F:\Visual Studio Projects\ComponentLibraries\" />
+        <Copy SourceFiles="$(PackageOutputPath)$(PackageId).$(PackageVersion).nupkg" DestinationFolder="$(ComponentLibraryPath)" />
     </Target>
 
     <ItemGroup>

@@ -203,3 +203,11 @@ A container that can hide its child from layout and rendering while optionally d
 
 ### TransparentButton
 A button with a transparent background and border.
+
+### Indicator
+A simple control that can be used to indicate a status with customizable colors and shapes.
+- **Properties**:
+  - `IndicatorColor`: Choice of "standard" colors for the indicator.
+  - `SelectedColor`: The color used when the indicator is selected and the `IndicatorColor` is Custom.
+  - `IsSelected`: Indicates whether the indicator is selected.
+  - `Shape`: Shape of the indicator (e.g., ellipse, rectangle, rounded rectangle).

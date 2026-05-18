@@ -1,9 +1,14 @@
 ﻿// SideBySideListSelect.cs
-//  Andrew Baylis
-//  Created: 01/07/2025
+// Andrew Baylis
+// Created: 18/05/2026
 
 #region using
 
+using System.Collections;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -11,12 +16,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
 #endregion
 
@@ -27,51 +26,75 @@ namespace AJBAvalonia;
 /// </summary>
 public class SideBySideListSelect : TemplatedControl
 {
-    #region Avalonia Properties
-
     public static readonly DirectProperty<SideBySideListSelect, bool> AllowCopiesInSelectedProperty =
-        AvaloniaProperty.RegisterDirect<SideBySideListSelect, bool>(nameof(AllowCopiesInSelected), o => o.AllowCopiesInSelected, (o, v) => o.AllowCopiesInSelected = v);
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, bool>(nameof(AllowCopiesInSelected),
+            o => o.AllowCopiesInSelected, (o, v) => o.AllowCopiesInSelected = v);
 
-    public static readonly StyledProperty<FontStyle> HeaderFontStyleProperty = AvaloniaProperty.Register<SideBySideListSelect, FontStyle>(nameof(HeaderFontStyle));
+    public static readonly StyledProperty<FontStyle> HeaderFontStyleProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, FontStyle>(nameof(HeaderFontStyle));
 
-    public static readonly StyledProperty<FontWeight> HeaderFontWeightProperty = AvaloniaProperty.Register<SideBySideListSelect, FontWeight>(nameof(HeaderFontWeight));
+    public static readonly StyledProperty<FontWeight> HeaderFontWeightProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, FontWeight>(nameof(HeaderFontWeight));
 
-    public static readonly StyledProperty<Thickness?> HeaderMarginProperty = AvaloniaProperty.Register<SideBySideListSelect, Thickness?>(nameof(HeaderMargin));
+    public static readonly StyledProperty<Thickness?> HeaderMarginProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, Thickness?>(nameof(HeaderMargin));
 
-    public static readonly StyledProperty<string?> LeftHeaderTextProperty = AvaloniaProperty.Register<SideBySideListSelect, string?>(nameof(LeftHeaderText));
+    public static readonly StyledProperty<string?> LeftHeaderTextProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, string?>(nameof(LeftHeaderText));
 
-    public static readonly StyledProperty<IBrush?> LeftListBoxForegroundProperty = AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(LeftListBoxForeground));
+    public static readonly StyledProperty<IBrush?> LeftListBoxForegroundProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(LeftListBoxForeground));
 
-    public static readonly StyledProperty<IDataTemplate?> LeftListTemplateProperty = AvaloniaProperty.Register<SideBySideListSelect, IDataTemplate?>(nameof(LeftListTemplate));
+    public static readonly StyledProperty<IDataTemplate?> LeftListTemplateProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, IDataTemplate?>(nameof(LeftListTemplate));
 
-    public static readonly StyledProperty<IBrush?> ListBackgroundProperty = AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(ListBackground));
+    public static readonly DirectProperty<SideBySideListSelect, IEnumerable?> LeftSourceProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, IEnumerable?>(nameof(LeftSource), o => o.LeftSource,
+            (o, v) => o.LeftSource = v);
 
-    public static readonly StyledProperty<IBrush?> ListBoxBorderBrushProperty = AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(ListBoxBorderBrush));
+    public static readonly StyledProperty<IBrush?> ListBackgroundProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(ListBackground));
 
-    public static readonly StyledProperty<Thickness?> ListBoxBorderThicknessProperty = AvaloniaProperty.Register<SideBySideListSelect, Thickness?>(nameof(ListBoxBorderThickness));
+    public static readonly StyledProperty<IBrush?> ListBoxBorderBrushProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(ListBoxBorderBrush));
 
-    public static readonly StyledProperty<SelectionMode> ListSelectionModeProperty = AvaloniaProperty.Register<SideBySideListSelect, SelectionMode>(nameof(ListSelectionMode));
+    public static readonly StyledProperty<Thickness?> ListBoxBorderThicknessProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, Thickness?>(nameof(ListBoxBorderThickness));
 
-    public static readonly StyledProperty<string?> RightHeaderTextProperty = AvaloniaProperty.Register<SideBySideListSelect, string?>(nameof(RightHeaderText));
+    public static readonly StyledProperty<SelectionMode> ListSelectionModeProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, SelectionMode>(nameof(ListSelectionMode));
 
-    public static readonly StyledProperty<IBrush?> RightListBoxForegroundProperty = AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(RightListBoxForeground));
+    public static readonly StyledProperty<string?> RightHeaderTextProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, string?>(nameof(RightHeaderText));
 
-    public static readonly StyledProperty<IDataTemplate?> RightListTemplateProperty = AvaloniaProperty.Register<SideBySideListSelect, IDataTemplate?>(nameof(RightListTemplate));
+    public static readonly StyledProperty<IBrush?> RightListBoxForegroundProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(RightListBoxForeground));
 
-    #endregion
+    public static readonly StyledProperty<IDataTemplate?> RightListTemplateProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, IDataTemplate?>(nameof(RightListTemplate));
 
-    #region Fields
+    public static readonly DirectProperty<SideBySideListSelect, IEnumerable?> RightSourceProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, IEnumerable?>(nameof(RightSource), o => o.RightSource,
+            (o, v) => o.RightSource = v);
+
+    #region Private fields
 
     private Button? _btnMoveAllLeft;
     private Button? _btnMoveAllRight;
     private Button? _btnMoveLeft;
     private Button? _btnMoveRight;
+    private bool _changeLeftItems;
+    private bool _changeRightItems;
 
     private string? _displayMemberPath;
 
     private ListBox? _leftList;
 
+    private IEnumerable? _leftSource;
+
     private ListBox? _rightList;
+
+    private IEnumerable? _rightSource;
 
     #endregion
 
@@ -81,12 +104,18 @@ public class SideBySideListSelect : TemplatedControl
     public SideBySideListSelect()
     {
         LeftItems = [];
-        LeftItems.CollectionChanged += (s, e) => { CheckCanAddLeftRight(); };
+        LeftItems.CollectionChanged += (s, e) =>
+        {
+            CheckCanAddLeftRight();
+        };
         RightItems = [];
-        RightItems.CollectionChanged += (s, e) => { CheckCanAddRightLeft(); };
+        RightItems.CollectionChanged += (s, e) =>
+        {
+            CheckCanAddRightLeft();
+        };
     }
 
-    #region Properties
+    #region Public properties
 
     /// <summary>
     ///     Gets or sets whether copies are allowed when moving items to selected list.
@@ -167,6 +196,24 @@ public class SideBySideListSelect : TemplatedControl
     {
         get => GetValue(LeftListTemplateProperty);
         set => SetValue(LeftListTemplateProperty, value);
+    }
+
+    public IEnumerable? LeftSource
+    {
+        get => _leftSource;
+        set
+        {
+            if (_leftSource is INotifyCollectionChanged col)
+            {
+                col.CollectionChanged -= LeftSourceCollectionChanged;
+            }
+
+            SetAndRaise(LeftSourceProperty, ref _leftSource, value);
+            if (_leftSource is INotifyCollectionChanged colL)
+            {
+                colL.CollectionChanged += LeftSourceCollectionChanged;
+            }
+        }
     }
 
     /// <summary>
@@ -260,28 +307,41 @@ public class SideBySideListSelect : TemplatedControl
         set => SetValue(RightListTemplateProperty, value);
     }
 
+    public IEnumerable? RightSource
+    {
+        get => _rightSource;
+        set
+        {
+            if (_rightSource is INotifyCollectionChanged col)
+            {
+                col.CollectionChanged -= RightSourceCollectionChanged;
+            }
+
+            SetAndRaise(RightSourceProperty, ref _rightSource, value);
+            if (_rightSource is INotifyCollectionChanged colR)
+            {
+                colR.CollectionChanged += RightSourceCollectionChanged;
+            }
+        }
+    }
+
+    #endregion
+
+    #region Internal properties
+
     /// <summary>
     ///     Gets the collection of left items.
     /// </summary>
-    internal SortedListCollection<object> LeftItems { get; }
+    internal SortedFilterListCollection<object> LeftItems { get; }
 
     /// <summary>
     ///     Gets the collection of right items.
     /// </summary>
-    internal SortedListCollection<object> RightItems { get; }
+    internal SortedFilterListCollection<object> RightItems { get; }
 
     #endregion
 
-    #region Events
-
-    /// <summary>
-    ///     Raised when the selected collection changes.
-    /// </summary>
-    public event CollectionChangeEventHandler? SelectedCollectionChanged;
-
-    #endregion
-
-    #region Public Methods
+    #region Public members
 
     /// <summary>
     ///     Gets the selected items cast to the requested type.
@@ -331,9 +391,24 @@ public class SideBySideListSelect : TemplatedControl
         }
     }
 
+    /// <summary>
+    ///     Raised when the selected collection changes.
+    /// </summary>
+    public event CollectionChangeEventHandler? SelectedCollectionChanged;
+
+    public void SetFilterLeftList(Func<object, bool>? filter)
+    {
+        LeftItems.SetFilter(filter);
+    }
+
+    public void SetFilterRightList(Func<object, bool>? filter)
+    {
+        RightItems.SetFilter(filter);
+    }
+
     #endregion
 
-    #region Protected Methods
+    #region Protected members
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
@@ -396,7 +471,7 @@ public class SideBySideListSelect : TemplatedControl
 
     #endregion
 
-    #region Private Methods
+    #region Private members
 
     private void AddAllLeftToRightExecute()
     {
@@ -404,9 +479,11 @@ public class SideBySideListSelect : TemplatedControl
         if (!AllowCopiesInSelected)
         {
             LeftItems.Clear();
+            UpdateLeftSource();
         }
 
         RightItems.AddRange(moveList);
+        UpdateRightSource();
         if (SelectedCollectionChanged != null)
         {
             var e = new CollectionChangeEventArgs(CollectionChangeAction.Add, moveList);
@@ -418,9 +495,11 @@ public class SideBySideListSelect : TemplatedControl
     {
         var moveList = new List<object>(RightItems);
         RightItems.Clear();
+        UpdateRightSource();
         if (!AllowCopiesInSelected)
         {
             LeftItems.AddRange(moveList);
+            UpdateLeftSource();
         }
 
         if (SelectedCollectionChanged != null)
@@ -441,9 +520,12 @@ public class SideBySideListSelect : TemplatedControl
                 {
                     LeftItems.Remove(item);
                 }
+
+                UpdateLeftSource();
             }
 
             RightItems.AddRange(moveList);
+            UpdateRightSource();
             if (SelectedCollectionChanged != null)
             {
                 var e = new CollectionChangeEventArgs(CollectionChangeAction.Add, moveList);
@@ -462,9 +544,12 @@ public class SideBySideListSelect : TemplatedControl
                 RightItems.Remove(item);
             }
 
+            UpdateRightSource();
+
             if (!AllowCopiesInSelected)
             {
                 LeftItems.AddRange(moveList);
+                UpdateLeftSource();
             }
 
             if (SelectedCollectionChanged != null)
@@ -531,6 +616,20 @@ public class SideBySideListSelect : TemplatedControl
         CheckCanAddLeftRight();
     }
 
+    private void LeftSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (!_changeLeftItems)
+        {
+            LeftItems.Clear();
+            if (_leftSource != null)
+            {
+                LeftItems.AddRange(_leftSource.Cast<object>());
+            }
+
+            CheckCanAddLeftRight();
+        }
+    }
+
     private void RightListOnDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (_rightList?.SelectedItems?.Count > 0)
@@ -542,6 +641,20 @@ public class SideBySideListSelect : TemplatedControl
     private void RightListOnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         CheckCanAddRightLeft();
+    }
+
+    private void RightSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (!_changeRightItems)
+        {
+            RightItems.Clear();
+            if (_rightSource != null)
+            {
+                RightItems.AddRange(_rightSource.Cast<object>());
+            }
+
+            CheckCanAddRightLeft();
+        }
     }
 
     private void SortLeftList()
@@ -560,18 +673,59 @@ public class SideBySideListSelect : TemplatedControl
         RightItems.Sort();
     }
 
-    #endregion
+    private void UpdateLeftSource()
+    {
+        if (_leftSource is IList lCollection)
+        {
+            _changeLeftItems = true;
+            try
+            {
+                lCollection.Clear();
+                foreach (var item in LeftItems)
+                {
+                    lCollection.Add(item);
+                }
+            }
+            finally
+            {
+                _changeLeftItems = false;
+            }
+        }
+    }
 
-    #region Nested type: SortedListCollection
+    private void UpdateRightSource()
+    {
+        if (_rightSource is IList rCollection)
+        {
+            _changeRightItems = true;
+            try
+            {
+                rCollection.Clear();
+                foreach (var rightItem in RightItems)
+                {
+                    rCollection.Add(rightItem);
+                }
+            }
+            finally
+            {
+                _changeRightItems = false;
+            }
+        }
+    }
+
+    #endregion
 
     /// <summary>
     ///     A collection that supports sorting, bulk operations and notifies of changes.
     /// </summary>
-    public class SortedListCollection<T> : Collection<T>, INotifyCollectionChanged, INotifyPropertyChanged
+    public class SortedFilterListCollection<T> : ICollection<T>, IList, INotifyCollectionChanged, INotifyPropertyChanged
     {
-        #region Fields
+        #region Private fields
+
+        private readonly List<T> _items = new();
 
         private bool _blockNotifications;
+        private Func<object, bool>? _filter;
         private IComparer<T>? _sortComparer;
         private string? _sortKey;
 
@@ -579,7 +733,21 @@ public class SideBySideListSelect : TemplatedControl
 
         #endregion
 
-        #region Properties
+        #region Public properties
+
+        public int Count => _items.Count;
+
+        public int FilteredCount => _items.Count(item => item != null && (_filter == null || _filter(item)));
+
+        public bool IsFixedSize => false;
+        public bool IsReadOnly => false;
+        public bool IsSynchronized => false;
+
+        public T this[int index]
+        {
+            get => _items[index];
+            set => SetItem(index, value);
+        }
 
         /// <summary>
         ///     Gets or sets the comparer used for sorting.
@@ -609,9 +777,27 @@ public class SideBySideListSelect : TemplatedControl
             }
         }
 
+        public object SyncRoot => this;
+
         #endregion
 
-        #region Public Methods
+        #region Private properties
+
+        object? IList.this[int index]
+        {
+            get => this[index];
+            set
+            {
+                if (value is T item)
+                {
+                    this[index] = item;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Public members
 
         /// <summary>
         ///     Adds a range of items to the collection.
@@ -621,10 +807,7 @@ public class SideBySideListSelect : TemplatedControl
             BlockNotifications();
             try
             {
-                foreach (var item in items)
-                {
-                    Items.Add(item);
-                }
+                _items.AddRange(items);
 
                 Sort();
             }
@@ -651,21 +834,25 @@ public class SideBySideListSelect : TemplatedControl
             OnCollectionReset();
         }
 
+        public void SetFilter(Func<object, bool>? filter)
+        {
+            _filter = filter;
+            OnCollectionReset();
+        }
+
         /// <summary>
         ///     Sorts the collection using the configured comparer or key.
         /// </summary>
         public void Sort()
         {
-            if (Items.Count > 1 && CheckSortProp() && _sortComparer != null)
+            if (_items.Count > 1 && CheckSortProp() && _sortComparer != null)
             {
                 BlockNotifications();
                 try
                 {
                     // Perform sorting using the specified property
-                    if (_sortProp != null)
-                    {
-                        ArrayList.Adapter((IList)Items).Sort(Comparer<T>.Create((x, y) => _sortComparer.Compare(x, y)));
-                    }
+
+                    _items.Sort(Comparer<T>.Create((x, y) => _sortComparer.Compare(x, y)));
                 }
                 finally
                 {
@@ -679,7 +866,7 @@ public class SideBySideListSelect : TemplatedControl
         /// </summary>
         public void Sort(string propertyName)
         {
-            if (Items.Count > 1)
+            if (_items.Count > 1)
             {
                 SortKey = propertyName;
                 Sort();
@@ -691,7 +878,7 @@ public class SideBySideListSelect : TemplatedControl
         /// </summary>
         public void Sort(IComparer<T> comparer)
         {
-            if (Items.Count > 1)
+            if (_items.Count > 1)
             {
                 SortComparer = comparer;
                 Sort();
@@ -700,50 +887,7 @@ public class SideBySideListSelect : TemplatedControl
 
         #endregion
 
-        #region Protected Methods
-
-        protected override void ClearItems()
-        {
-            base.ClearItems();
-            OnCountPropertyChanged();
-            OnIndexerPropertyChanged();
-            OnCollectionReset();
-        }
-
-        /// <summary>
-        ///     Called by base class Collection&lt;T&gt; when an item is added to list;
-        ///     raises a CollectionChanged event to any listeners.
-        /// </summary>
-        protected override void InsertItem(int index, T item)
-        {
-            if (Items.Count == 0)
-            {
-                base.InsertItem(index, item);
-            }
-            else
-            {
-                if (CheckSortProp() && _sortComparer != null && Items is List<T> itemsList)
-                {
-                    //insert by BinarySearch
-
-                    var idx = itemsList.BinarySearch(item, _sortComparer);
-                    if (idx < 0)
-                    {
-                        idx = ~idx;
-                    }
-
-                    Items.Insert(idx, item);
-                }
-                else
-                {
-                    base.InsertItem(index, item);
-                }
-            }
-
-            OnCountPropertyChanged();
-            OnIndexerPropertyChanged();
-            OnCollectionReset();
-        }
+        #region Protected members
 
         protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
@@ -759,36 +903,22 @@ public class SideBySideListSelect : TemplatedControl
         }
 
         /// <summary>
-        ///     Called by base class Collection&lt;T&gt; when an item is removed from list;
-        ///     raises a CollectionChanged event to any listeners.
-        /// </summary>
-        protected override void RemoveItem(int index)
-        {
-            var removedItem = this[index];
-
-            base.RemoveItem(index);
-
-            OnCountPropertyChanged();
-            OnIndexerPropertyChanged();
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItem, index));
-        }
-
-        /// <summary>
         ///     Called by base class Collection&lt;T&gt; when an item is set in list;
         ///     raises a CollectionChanged event to any listeners.
         /// </summary>
-        protected override void SetItem(int index, T item)
+        protected void SetItem(int index, T item)
         {
             var originalItem = this[index];
-            base.SetItem(index, item);
+            _items[index] = item;
 
             OnIndexerPropertyChanged();
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, originalItem, item, index));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
+                originalItem, item, index));
         }
 
         #endregion
 
-        #region Private Methods
+        #region Private members
 
         private bool CheckSortProp()
         {
@@ -796,12 +926,12 @@ public class SideBySideListSelect : TemplatedControl
             {
                 if (_sortProp == null && !string.IsNullOrEmpty(SortKey))
                 {
-                    if (Items.Count == 0)
+                    if (_items.Count == 0)
                     {
                         return false; // No items to check against
                     }
 
-                    var obj = Items[0];
+                    var obj = _items[0];
 
                     if (obj != null)
                     {
@@ -839,18 +969,153 @@ public class SideBySideListSelect : TemplatedControl
 
         #endregion
 
-        #region INotifyCollectionChanged Members
+        #region Implementing ICollection
+
+        public void CopyTo(Array array, int index)
+        {
+            CopyTo((T[])array, index);
+        }
+
+        #endregion
+
+        #region Implementing ICollection<T>
+
+        public void Add(T item)
+        {
+            _items.Add(item);
+            Sort();
+            OnCountPropertyChanged();
+            OnCollectionChanged(
+                new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, _items.Count - 1));
+        }
+
+        public void Clear()
+        {
+            _items.Clear();
+            OnCountPropertyChanged();
+            OnIndexerPropertyChanged();
+            OnCollectionReset();
+        }
+
+        public bool Contains(T item)
+        {
+            return _items.Contains(item);
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            _items.CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(T item)
+        {
+            var result = _items.Remove(item);
+            if (result)
+            {
+                Sort();
+                OnCountPropertyChanged();
+                OnIndexerPropertyChanged();
+                OnCollectionChanged(
+                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, -1));
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Implementing IEnumerable
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        #endregion
+
+        #region Implementing IEnumerable<T>
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            foreach (var item in _items)
+            {
+                if (item != null && (_filter == null || _filter(item)))
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Implementing IList
+
+        public int Add(object? value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Contains(object? value)
+        {
+            if (value is T item)
+            {
+                return _items.Contains(item);
+            }
+
+            return false;
+        }
+
+        public int IndexOf(object? value)
+        {
+            if (value is T item)
+            {
+                return _items.IndexOf(item);
+            }
+
+            return -1;
+        }
+
+        public void Insert(int index, object? value)
+        {
+            if (value is T item)
+            {
+                _items.Insert(index, item);
+                Sort();
+                OnCountPropertyChanged();
+                OnCollectionChanged(
+                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+            }
+        }
+
+        public void Remove(object? value)
+        {
+            if (value is T item)
+            {
+                Remove(item);
+            }
+        }
+
+        public void RemoveAt(int index)
+        {
+            var item = _items[index];
+            _items.RemoveAt(index);
+            OnCountPropertyChanged();
+            OnIndexerPropertyChanged();
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, -1));
+        }
+
+        #endregion
+
+        #region Implementing INotifyCollectionChanged
 
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
         #endregion
 
-        #region INotifyPropertyChanged Members
+        #region Implementing INotifyPropertyChanged
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         #endregion
     }
-
-    #endregion
 }
