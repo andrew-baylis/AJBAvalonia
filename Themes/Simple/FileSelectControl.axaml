@@ -3,22 +3,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ab="https://github.com/ajbavalonia">
     <!--  Add Resources Here  -->
+    <StreamGeometry x:Key="FileSelectClearButtonData">M 11.416016,10 20,1.4160156 18.583984,0 10,8.5839846 1.4160156,0 0,1.4160156 8.5839844,10 0,18.583985 1.4160156,20 10,11.416015 18.583984,20 20,18.583985 Z</StreamGeometry>
+
     <ControlTheme x:Key="{x:Type ab:FileSelectControl}" TargetType="{x:Type ab:FileSelectControl}">
         <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeNormal}" />
         <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}" />
-        <Setter Property="Padding" Value="4" />
+        <Setter Property="Padding" Value="{DynamicResource TextControlThemePadding}" />
         <Setter Property="Margin" Value="1" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
         <!--  Set Defaults  -->
         <Setter Property="Template">
             <ControlTemplate>
                 <Border
                     Background="{TemplateBinding Background}"
-                    BorderBrush="Transparent"
-                    BorderThickness="0">
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}">
                     <DockPanel LastChildFill="True">
                         <Button x:Name="dropButton"
                             Padding="4"
@@ -29,15 +34,51 @@
                                 Height="22"
                                 Source="/Images/folder_open24.png" />
                         </Button>
-                        <ab:TextBoxEx x:Name="fileNameEdit"
-                            Margin="2,2,0,2"
-                            VerticalAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            AllowClear="True"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            IsReadOnly="True"
-                            PlaceholderText="{TemplateBinding PlaceholderText}" />
+                        <Border>
+                            <DockPanel HorizontalAlignment="Stretch">
+                                <Button
+                                    Name="PART_ClearButton"
+                                    Width="{Binding $self.Bounds.Height}"
+                                    MinWidth="24"
+                                    VerticalAlignment="Stretch"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    ClipToBounds="True"
+                                    DockPanel.Dock="Right"
+                                    Focusable="False"
+                                    IsVisible="False">
+                                    <PathIcon
+                                        Width="10"
+                                        Height="10"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Data="{StaticResource FileSelectClearButtonData}" />
+                                </Button>
+                                <Border x:Name="PART_TextDisplay" Background="Transparent">
+                                    <Grid Margin="{TemplateBinding Padding}">
+                                        <TextBlock
+                                            Name="PART_Watermark"
+                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                            IsVisible="{TemplateBinding Text,
+                                                                        Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                            Opacity="0.5"
+                                            Text="{TemplateBinding PlaceholderText}"
+                                            TextAlignment="{TemplateBinding TextAlignment}"
+                                            TextWrapping="{TemplateBinding TextWrapping}" />
+                                        <TextBlock
+                                            Name="PART_TextPresenter"
+                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                            IsVisible="{TemplateBinding Text,
+                                                                        Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                            Text="{TemplateBinding Text}"
+                                            TextAlignment="{TemplateBinding TextAlignment}"
+                                            TextWrapping="{TemplateBinding TextWrapping}" />
+                                    </Grid>
+                                </Border>
+                            </DockPanel>
+                        </Border>
                     </DockPanel>
                 </Border>
             </ControlTemplate>

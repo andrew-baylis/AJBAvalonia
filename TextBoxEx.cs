@@ -188,6 +188,9 @@ public class TextBoxEx : TextBox
             btn.Focusable = false;
             btn.Click += BtnOnClick;
         }
+
+        Classes.Set("clearButton", AllowClear);
+        Classes.Set("revealPasswordButton", ShowPassword);
     }
 
     /// <summary>
