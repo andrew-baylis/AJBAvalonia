@@ -3,9 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ab="https://github.com/ajbavalonia">
     <!--  Add Resources Here  -->
-    <ControlTheme
-        x:Key="{x:Type ab:FileSelectControl}"
-        TargetType="{x:Type ab:FileSelectControl}">
+    <ControlTheme x:Key="{x:Type ab:FileSelectControl}" TargetType="{x:Type ab:FileSelectControl}">
         <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -22,8 +20,7 @@
                     BorderBrush="Transparent"
                     BorderThickness="0">
                     <DockPanel LastChildFill="True">
-                        <Button
-                            x:Name="dropButton"
+                        <Button x:Name="dropButton"
                             Padding="4"
                             Background="Transparent"
                             DockPanel.Dock="Right">
@@ -32,8 +29,7 @@
                                 Height="22"
                                 Source="/Images/folder_open24.png" />
                         </Button>
-                        <ab:TextBoxEx
-                            x:Name="fileNameEdit"
+                        <ab:TextBoxEx x:Name="fileNameEdit"
                             Margin="2,2,0,2"
                             VerticalAlignment="Center"
                             VerticalContentAlignment="Center"

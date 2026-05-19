@@ -1,6 +1,6 @@
 ﻿// FileSelectControl.cs
-//  Andrew Baylis
-//  Created: 08/01/2026
+// Andrew Baylis
+// Created: 19/05/2026
 
 #region using
 
@@ -33,14 +33,19 @@ public enum FileDisplayStyleEnum
 
 public class FileSelectControl : TemplatedControl
 {
-    #region Avalonia Properties
+    #region Static Public
 
-    public static readonly StyledProperty<string?> DefaultExtensionProperty = AvaloniaProperty.Register<FileSelectControl, string?>(nameof(DefaultExtension));
+    public static readonly StyledProperty<string?> DefaultExtensionProperty =
+        AvaloniaProperty.Register<FileSelectControl, string?>(nameof(DefaultExtension));
 
-    public static readonly StyledProperty<string?> DialogFilterProperty = AvaloniaProperty.Register<FileSelectControl, string?>(nameof(DialogFilter));
-    public static readonly StyledProperty<string?> DialogTitleProperty = AvaloniaProperty.Register<FileSelectControl, string?>(nameof(DialogTitle));
+    public static readonly StyledProperty<string?> DialogFilterProperty =
+        AvaloniaProperty.Register<FileSelectControl, string?>(nameof(DialogFilter));
 
-    public static readonly StyledProperty<FileDialogTypeEnum> DialogTypeProperty = AvaloniaProperty.Register<FileSelectControl, FileDialogTypeEnum>(nameof(DialogType));
+    public static readonly StyledProperty<string?> DialogTitleProperty =
+        AvaloniaProperty.Register<FileSelectControl, string?>(nameof(DialogTitle));
+
+    public static readonly StyledProperty<FileDialogTypeEnum> DialogTypeProperty =
+        AvaloniaProperty.Register<FileSelectControl, FileDialogTypeEnum>(nameof(DialogType));
 
     public static readonly StyledProperty<FileDisplayStyleEnum> FileNameDisplayProperty =
         AvaloniaProperty.Register<FileSelectControl, FileDisplayStyleEnum>(nameof(FileNameDisplay));
@@ -48,26 +53,29 @@ public class FileSelectControl : TemplatedControl
     public static readonly StyledProperty<HorizontalAlignment> HorizontalContentAlignmentProperty =
         AvaloniaProperty.Register<FileSelectControl, HorizontalAlignment>(nameof(HorizontalContentAlignment));
 
+    public static readonly StyledProperty<string?> PlaceholderTextProperty =
+        AvaloniaProperty.Register<FileSelectControl, string?>(nameof(PlaceholderText), "Select file ...");
+
     public static readonly DirectProperty<FileSelectControl, bool> ShowFileDialogOnTextClickProperty =
-        AvaloniaProperty.RegisterDirect<FileSelectControl, bool>(nameof(ShowFileDialogOnTextClick), o => o.ShowFileDialogOnTextClick, (o, v) => o.ShowFileDialogOnTextClick = v);
-
-    public static readonly StyledProperty<string?> TextProperty =
-        AvaloniaProperty.Register<FileSelectControl, string?>(nameof(Text), defaultBindingMode: BindingMode.TwoWay, enableDataValidation: true);
-
-    public static readonly StyledProperty<string?> PlaceholderTextProperty = AvaloniaProperty.Register<FileSelectControl, string?>(nameof(PlaceholderText), "Select file ...");
-
-    #endregion
-
-    #region Fields
+        AvaloniaProperty.RegisterDirect<FileSelectControl, bool>(nameof(ShowFileDialogOnTextClick),
+            o => o.ShowFileDialogOnTextClick, (o, v) => o.ShowFileDialogOnTextClick = v);
 
     public static readonly RoutedEvent<TextChangedEventArgs> TextChangedEvent =
         RoutedEvent.Register<FileSelectControl, TextChangedEventArgs>(nameof(TextChanged), RoutingStrategies.Bubble);
 
-    private bool _showFileDialogOnTextClick = true;
+    public static readonly StyledProperty<string?> TextProperty =
+        AvaloniaProperty.Register<FileSelectControl, string?>(nameof(Text), defaultBindingMode: BindingMode.TwoWay,
+            enableDataValidation: true);
+
+    #endregion
+
+    #region Private fields
 
     private Button? _dropButton;
 
     private TextBox? _fileNameEdit;
+
+    private bool _showFileDialogOnTextClick = true;
 
     #endregion
 
@@ -76,7 +84,7 @@ public class FileSelectControl : TemplatedControl
         BorderThickness = new Thickness(1);
     }
 
-    #region Properties
+    #region Public properties
 
     public string? DefaultExtension
     {
@@ -114,6 +122,12 @@ public class FileSelectControl : TemplatedControl
         set => SetValue(HorizontalContentAlignmentProperty, value);
     }
 
+    public string? PlaceholderText
+    {
+        get => GetValue(PlaceholderTextProperty);
+        set => SetValue(PlaceholderTextProperty, value);
+    }
+
     public bool ShowFileDialogOnTextClick
     {
         get => _showFileDialogOnTextClick;
@@ -126,15 +140,9 @@ public class FileSelectControl : TemplatedControl
         set => SetValue(TextProperty, value);
     }
 
-    public string? PlaceholderText
-    {
-        get => GetValue(PlaceholderTextProperty);
-        set => SetValue(PlaceholderTextProperty, value);
-    }
-
     #endregion
 
-    #region Events
+    #region Public members
 
     public event EventHandler<TextChangedEventArgs> TextChanged
     {
@@ -144,7 +152,7 @@ public class FileSelectControl : TemplatedControl
 
     #endregion
 
-    #region Protected Methods
+    #region Protected members
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
@@ -154,11 +162,21 @@ public class FileSelectControl : TemplatedControl
         {
             _fileNameEdit.PlaceholderText = PlaceholderText;
             _fileNameEdit.HorizontalContentAlignment = HorizontalContentAlignment;
-            _fileNameEdit.PointerPressed += FileNameEditOnPointerPressed;
         }
 
         _dropButton = e.NameScope.Find<Button>("dropButton");
         _dropButton?.Click += ShowFileDialogExecute;
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        AddHandler(PointerPressedEvent, FileNameEditOnPointerPressed,
+            RoutingStrategies.Bubble | RoutingStrategies.Tunnel);
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        RemoveHandler(PointerPressedEvent, FileNameEditOnPointerPressed);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -172,12 +190,13 @@ public class FileSelectControl : TemplatedControl
 
     #endregion
 
-    #region Private Methods
+    #region Private members
 
     private void FileNameEditOnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (ShowFileDialogOnTextClick)
         {
+            e.Handled = true;
             ShowFileDialogExecute(sender, e);
         }
     }
@@ -207,11 +226,14 @@ public class FileSelectControl : TemplatedControl
     {
         Dispatcher.UIThread.Invoke(async () =>
         {
-            string? filename = DialogType switch
+            var filename = DialogType switch
             {
-                FileDialogTypeEnum.FileOpen => await FileDialogExtensions.OpenFileDialog(DialogTitle ?? "Open File", DialogFilter),
-                FileDialogTypeEnum.FileOpenImage => await FileDialogExtensions.OpenFileImageDialog(DialogTitle ?? "Open Image File", DialogFilter),
-                FileDialogTypeEnum.FileSave => await FileDialogExtensions.SaveFileDialog(DialogTitle ?? "Save File", DefaultExtension, null, true, DialogFilter),
+                FileDialogTypeEnum.FileOpen => await FileDialogExtensions.OpenFileDialog(DialogTitle ?? "Open File",
+                    DialogFilter),
+                FileDialogTypeEnum.FileOpenImage => await FileDialogExtensions.OpenFileImageDialog(
+                    DialogTitle ?? "Open Image File", DialogFilter),
+                FileDialogTypeEnum.FileSave => await FileDialogExtensions.SaveFileDialog(DialogTitle ?? "Save File",
+                    DefaultExtension, null, true, DialogFilter),
                 _ => throw new ArgumentOutOfRangeException(nameof(DialogType))
             };
 

@@ -5,6 +5,8 @@ VisualStudioVersion = 18.2.11408.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AJBAvalonia", "AJBAvalonia.csproj", "{0592DABD-7140-4BC5-A6B5-C302E16DB1B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestFileControl", "..\..\Tests\TestFileControl\TestFileControl.csproj", "{B195D8E1-89E7-44FD-9E1C-01E529A8DC4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{0592DABD-7140-4BC5-A6B5-C302E16DB1B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0592DABD-7140-4BC5-A6B5-C302E16DB1B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0592DABD-7140-4BC5-A6B5-C302E16DB1B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B195D8E1-89E7-44FD-9E1C-01E529A8DC4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B195D8E1-89E7-44FD-9E1C-01E529A8DC4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B195D8E1-89E7-44FD-9E1C-01E529A8DC4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B195D8E1-89E7-44FD-9E1C-01E529A8DC4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
