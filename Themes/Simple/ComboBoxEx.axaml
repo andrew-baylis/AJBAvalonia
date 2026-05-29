@@ -37,13 +37,11 @@
             <ControlTemplate>
                 <DataValidationErrors>
                     <Grid ColumnDefinitions="*,32,Auto">
-                        <Border
-                            x:Name="Underlying"
+                        <Border x:Name="Underlying"
                             Grid.Column="0"
                             Grid.ColumnSpan="3"
                             Background="Transparent" />
-                        <Border
-                            x:Name="Background"
+                        <Border x:Name="Background"
                             Grid.Column="0"
                             Grid.ColumnSpan="2"
                             MinWidth="{DynamicResource ComboBoxThemeMinWidth}"
@@ -51,8 +49,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}" />
-                        <Border
-                            x:Name="HighlightBackground"
+                        <Border x:Name="HighlightBackground"
                             Grid.Column="0"
                             Grid.ColumnSpan="2"
                             Background="{DynamicResource ComboBoxBackgroundUnfocused}"
@@ -60,8 +57,7 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}"
                             IsVisible="False" />
-                        <TextBlock
-                            x:Name="PlaceholderTextBlock"
+                        <TextBlock x:Name="PlaceholderTextBlock"
                             Grid.Column="0"
                             Margin="{TemplateBinding Padding}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -73,16 +69,14 @@
                                                         Converter={x:Static ObjectConverters.IsNull}}"
                             Text="{TemplateBinding PlaceholderText}" />
 
-                        <ContentControl
-                            x:Name="ContentPresenter"
+                        <ContentControl x:Name="ContentPresenter"
                             Grid.Column="0"
                             Margin="{TemplateBinding Padding}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             Content="{TemplateBinding SelectionBoxItem}" />
 
-                        <Border
-                            x:Name="DropDownOverlay"
+                        <Border x:Name="DropDownOverlay"
                             Grid.Column="1"
                             Width="30"
                             Margin="0,1,1,1"
@@ -90,8 +84,7 @@
                             Background="Transparent"
                             IsVisible="False" />
 
-                        <PathIcon
-                            x:Name="DropDownGlyph"
+                        <PathIcon x:Name="DropDownGlyph"
                             Grid.Column="1"
                             Width="12"
                             Height="12"
@@ -103,8 +96,7 @@
                             IsHitTestVisible="False"
                             UseLayoutRounding="False" />
 
-                        <ab:ComboClearButton
-                            x:Name="PART_ClearButton"
+                        <ab:ComboClearButton x:Name="PART_ClearButton"
                             Grid.Column="2"
                             VerticalAlignment="Stretch"
                             Background="{TemplateBinding ClearButtonBackground}"
@@ -115,7 +107,8 @@
 
                         <Popup
                             Name="PART_Popup"
-                            MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                            MinWidth="{Binding Bounds.Width,
+                                               RelativeSource={RelativeSource TemplatedParent}}"
                             MaxHeight="{TemplateBinding MaxDropDownHeight}"
                             InheritsTransform="True"
                             IsLightDismissEnabled="True"
@@ -124,8 +117,7 @@
                             Placement="BottomEdgeAlignedLeft"
                             PlacementTarget="Background"
                             WindowManagerAddShadowHint="False">
-                            <Border
-                                x:Name="PopupBorder"
+                            <Border x:Name="PopupBorder"
                                 Padding="{DynamicResource ComboBoxDropdownBorderPadding}"
                                 HorizontalAlignment="Stretch"
                                 Background="{DynamicResource ComboBoxDropDownBackground}"
@@ -145,14 +137,29 @@
             </ControlTemplate>
         </Setter>
 
+        <!--  DisplayOnly State  -->
+        <Style Selector="^:displayOnly">
+            <Setter Property="IsEnabled" Value="False" />
+            <Style Selector="^ /template/ Border#Background">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Style>
+            <Style Selector="^ /template/ ab|ComboClearButton">
+                <Setter Property="IsVisible" Value="False" />
+            </Style>
+            <Style Selector="^ /template/ PathIcon#DropDownGlyph">
+                <Setter Property="IsVisible" Value="False" />
+            </Style>
+        </Style>
+
         <!--  PointerOver State  -->
-        <Style Selector="^:pointerover /template/ Border#Background">
+        <Style Selector="^:pointerover:standard /template/ Border#Background">
             <Setter Property="Background" Value="{DynamicResource ComboBoxBackgroundPointerOver}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ComboBoxBorderBrushPointerOver}" />
         </Style>
 
         <!--  Pressed State  -->
-        <Style Selector="^:pressed /template/ Border#Background">
+        <Style Selector="^:pressed:standard /template/ Border#Background">
             <Setter Property="Background" Value="{DynamicResource ComboBoxBackgroundPressed}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ComboBoxBorderBrushPressed}" />
         </Style>
@@ -163,7 +170,7 @@
         </Style>
 
         <!--  Focus Pressed State  -->
-        <Style Selector="^:focused:pressed">
+        <Style Selector="^:focused:pressed:standard">
             <Style Selector="^ /template/ ContentControl#ContentPresenter">
                 <Setter Property="Foreground" Value="{DynamicResource ComboBoxForegroundFocusedPressed}" />
             </Style>
@@ -176,7 +183,7 @@
         </Style>
 
         <!--  Focused State  -->
-        <Style Selector="^:focus-visible">
+        <Style Selector="^:focus-visible:standard">
             <Style Selector="^ /template/ Border#HighlightBackground">
                 <Setter Property="IsVisible" Value="True" />
                 <Setter Property="BorderBrush" Value="{DynamicResource ComboBoxBackgroundBorderBrushFocused}" />
@@ -193,7 +200,7 @@
         </Style>
 
         <!--  Disabled State  -->
-        <Style Selector="^:disabled">
+        <Style Selector="^:disabled:standard">
             <Style Selector="^ /template/ Border#Background">
                 <Setter Property="Background" Value="{DynamicResource ComboBoxBackgroundDisabled}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource ComboBoxBorderBrushDisabled}" />

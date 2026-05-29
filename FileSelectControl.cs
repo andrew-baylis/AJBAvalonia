@@ -244,7 +244,6 @@ public class FileSelectControl : TemplatedControl
         if (change.Property == FileNameProperty)
         {
             SetDisplayText();
-            RaiseEvent(new TextChangedEventArgs(TextChangedEvent));
         }
         else if (change.Property == TextProperty && _clearButton != null)
         {
@@ -286,6 +285,8 @@ public class FileSelectControl : TemplatedControl
         {
             Text = null;
         }
+        
+        Dispatcher.UIThread.Post(() => RaiseEvent(new TextChangedEventArgs(TextChangedEvent)));
     }
 
     private void ShowFileDialogExecute(object? sender, RoutedEventArgs routedEventArgs)

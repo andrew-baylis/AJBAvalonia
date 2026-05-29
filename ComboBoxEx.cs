@@ -24,6 +24,7 @@ namespace AJBAvalonia;
 /// <summary>
 ///     Extended ComboBox with additional features such as clear button and customizable glyph.
 /// </summary>
+ [Avalonia.Controls.Metadata.PseudoClasses(new string[] {":standard", ":displayOnly" })]
 public class ComboBoxEx : ComboBox
 {
     #region Avalonia Properties
@@ -47,6 +48,27 @@ public class ComboBoxEx : ComboBox
 
     public static readonly DirectProperty<ComboBoxEx, string?> TextSearchPropertyNameProperty =
         AvaloniaProperty.RegisterDirect<ComboBoxEx, string?>(nameof(TextSearchPropertyName), o => o.TextSearchPropertyName, (o, v) => o.TextSearchPropertyName = v);
+
+    public static readonly DirectProperty<ComboBoxEx, bool> DisplayOnlyProperty =
+        AvaloniaProperty.RegisterDirect<ComboBoxEx, bool>(nameof(DisplayOnly), o => o.DisplayOnly, (o, v) => o.DisplayOnly = v);
+
+    private bool _displayOnly = false;
+
+    public bool DisplayOnly
+    {
+        get => _displayOnly;
+        set
+        {
+            SetAndRaise(DisplayOnlyProperty, ref _displayOnly, value);
+            SetPseudoClasses();
+        }
+    }
+
+    private void SetPseudoClasses()
+    {
+        this.PseudoClasses.Set(":displayOnly", _displayOnly);
+        this.PseudoClasses.Set(":standard", !_displayOnly);
+    }
 
     #endregion
 
@@ -220,6 +242,7 @@ public class ComboBoxEx : ComboBox
 
         _clearButton = e.NameScope.Find<ComboClearButton>("PART_ClearButton");
         _clearButton?.Click += (_, _) => DoClear();
+        SetPseudoClasses();
     }
 
     /// <summary>
