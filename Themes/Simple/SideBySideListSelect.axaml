@@ -11,8 +11,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid>
-                    <Border
-                        x:Name="PART_Border"
+                    <Border x:Name="PART_Border"
                         Padding="{TemplateBinding Padding}"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
@@ -38,9 +37,8 @@
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
                                 Orientation="Vertical">
-                                <Button
-                                    x:Name="btnMoveRight"
-                                    Width="24"
+                                <Button x:Name="btnMoveRight"
+                                    Width="30"
                                     Height="24"
                                     Margin="2,5"
                                     HorizontalContentAlignment="Center"
@@ -50,9 +48,8 @@
                                     BorderThickness="0">
                                     &gt;
                                 </Button>
-                                <Button
-                                    x:Name="btnMoveAllRight"
-                                    Width="24"
+                                <Button x:Name="btnMoveAllRight"
+                                    Width="30"
                                     Height="24"
                                     Margin="2,5"
                                     HorizontalContentAlignment="Center"
@@ -62,9 +59,8 @@
                                     BorderThickness="0">
                                     &gt;&gt;
                                 </Button>
-                                <Button
-                                    x:Name="btnMoveLeft"
-                                    Width="24"
+                                <Button x:Name="btnMoveLeft"
+                                    Width="30"
                                     Height="24"
                                     Margin="2,20,2,5"
                                     HorizontalContentAlignment="Center"
@@ -74,9 +70,8 @@
                                     BorderThickness="0">
                                     &lt;
                                 </Button>
-                                <Button
-                                    x:Name="btnMoveAllLeft"
-                                    Width="24"
+                                <Button x:Name="btnMoveAllLeft"
+                                    Width="30"
                                     Height="24"
                                     Margin="2,5"
                                     HorizontalContentAlignment="Center"
@@ -87,15 +82,13 @@
                                     &lt;&lt;
                                 </Button>
                             </StackPanel>
-                            <ListBox
-                                x:Name="LeftList"
+                            <ListBox x:Name="LeftList"
                                 Grid.Row="1"
                                 Grid.Column="0"
                                 BorderBrush="{TemplateBinding ListBoxBorderBrush}"
                                 BorderThickness="{TemplateBinding ListBoxBorderThickness}"
                                 SelectionMode="Multiple" />
-                            <ListBox
-                                x:Name="RightList"
+                            <ListBox x:Name="RightList"
                                 Grid.Row="1"
                                 Grid.Column="2"
                                 BorderBrush="{TemplateBinding ListBoxBorderBrush}"

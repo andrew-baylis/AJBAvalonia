@@ -204,22 +204,22 @@ public class Indicator : TemplatedControl
         {
             case IndicatorColorEnum.Red:
                 return new SolidColorBrush(Colors.DarkRed);
-                break;
+                
             case IndicatorColorEnum.Green:
                 return new SolidColorBrush(Colors.DarkGreen);
-                break;
+
             case IndicatorColorEnum.Blue:
                 return new SolidColorBrush(Colors.DarkBlue);
-                break;
+                
             case IndicatorColorEnum.Yellow:
                 return new SolidColorBrush(Color.Parse("#FF808000"));
-                break;
+
             case IndicatorColorEnum.Orange:
                 return new SolidColorBrush(Colors.DarkOrange);
-                break;
+                
             case IndicatorColorEnum.Purple:
                 return new SolidColorBrush(Color.Parse("#FF400040"));
-                break;
+                
             case IndicatorColorEnum.Custom:
             default:
                 return SelectedBorderBrush;

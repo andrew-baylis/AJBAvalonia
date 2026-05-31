@@ -1,6 +1,6 @@
 ﻿// SideBySideListSelect.cs
 // Andrew Baylis
-// Created: 18/05/2026
+// Created: 01/06/2026
 
 #region using
 
@@ -16,6 +16,7 @@ using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Metadata;
 
 #endregion
 
@@ -26,9 +27,15 @@ namespace AJBAvalonia;
 /// </summary>
 public class SideBySideListSelect : TemplatedControl
 {
+    #region Static Public
+
     public static readonly DirectProperty<SideBySideListSelect, bool> AllowCopiesInSelectedProperty =
         AvaloniaProperty.RegisterDirect<SideBySideListSelect, bool>(nameof(AllowCopiesInSelected),
             o => o.AllowCopiesInSelected, (o, v) => o.AllowCopiesInSelected = v);
+
+    public static readonly DirectProperty<SideBySideListSelect, BindingBase?> DisplayMemberBindingProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, BindingBase?>(nameof(DisplayMemberBinding),
+            o => o.DisplayMemberBinding, (o, v) => o.DisplayMemberBinding = v);
 
     public static readonly StyledProperty<FontStyle> HeaderFontStyleProperty =
         AvaloniaProperty.Register<SideBySideListSelect, FontStyle>(nameof(HeaderFontStyle));
@@ -39,6 +46,14 @@ public class SideBySideListSelect : TemplatedControl
     public static readonly StyledProperty<Thickness?> HeaderMarginProperty =
         AvaloniaProperty.Register<SideBySideListSelect, Thickness?>(nameof(HeaderMargin));
 
+    public static readonly DirectProperty<SideBySideListSelect, bool> IsLeftToRightProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, bool>(nameof(IsLeftToRight), o => o.IsLeftToRight,
+            (o, v) => o.IsLeftToRight = v);
+
+    public static readonly DirectProperty<SideBySideListSelect, IEnumerable?> ItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, IEnumerable?>(nameof(ItemsSource), o => o.ItemsSource,
+            (o, v) => o.ItemsSource = v);
+
     public static readonly StyledProperty<string?> LeftHeaderTextProperty =
         AvaloniaProperty.Register<SideBySideListSelect, string?>(nameof(LeftHeaderText));
 
@@ -47,10 +62,6 @@ public class SideBySideListSelect : TemplatedControl
 
     public static readonly StyledProperty<IDataTemplate?> LeftListTemplateProperty =
         AvaloniaProperty.Register<SideBySideListSelect, IDataTemplate?>(nameof(LeftListTemplate));
-
-    public static readonly DirectProperty<SideBySideListSelect, IEnumerable?> LeftSourceProperty =
-        AvaloniaProperty.RegisterDirect<SideBySideListSelect, IEnumerable?>(nameof(LeftSource), o => o.LeftSource,
-            (o, v) => o.LeftSource = v);
 
     public static readonly StyledProperty<IBrush?> ListBackgroundProperty =
         AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(ListBackground));
@@ -73,9 +84,11 @@ public class SideBySideListSelect : TemplatedControl
     public static readonly StyledProperty<IDataTemplate?> RightListTemplateProperty =
         AvaloniaProperty.Register<SideBySideListSelect, IDataTemplate?>(nameof(RightListTemplate));
 
-    public static readonly DirectProperty<SideBySideListSelect, IEnumerable?> RightSourceProperty =
-        AvaloniaProperty.RegisterDirect<SideBySideListSelect, IEnumerable?>(nameof(RightSource), o => o.RightSource,
-            (o, v) => o.RightSource = v);
+    public static readonly DirectProperty<SideBySideListSelect, IEnumerable?> SelectedItemsProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, IEnumerable?>(nameof(SelectedItems), o => o.SelectedItems,
+            (o, v) => o.SelectedItems = v);
+
+    #endregion
 
     #region Private fields
 
@@ -83,37 +96,22 @@ public class SideBySideListSelect : TemplatedControl
     private Button? _btnMoveAllRight;
     private Button? _btnMoveLeft;
     private Button? _btnMoveRight;
-    private bool _changeLeftItems;
-    private bool _changeRightItems;
+
+    private BindingBase? _displayMemberBinding;
 
     private string? _displayMemberPath;
 
-    private ListBox? _leftList;
+    private bool _isLeftToRight = true;
 
-    private IEnumerable? _leftSource;
+    private IEnumerable? _itemsSource;
+
+    private ListBox? _leftList;
 
     private ListBox? _rightList;
 
-    private IEnumerable? _rightSource;
+    private IEnumerable? _selectedItems;
 
     #endregion
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="SideBySideListSelect" /> class.
-    /// </summary>
-    public SideBySideListSelect()
-    {
-        LeftItems = [];
-        LeftItems.CollectionChanged += (s, e) =>
-        {
-            CheckCanAddLeftRight();
-        };
-        RightItems = [];
-        RightItems.CollectionChanged += (s, e) =>
-        {
-            CheckCanAddRightLeft();
-        };
-    }
 
     #region Public properties
 
@@ -124,6 +122,25 @@ public class SideBySideListSelect : TemplatedControl
     {
         get;
         set => SetAndRaise(AllowCopiesInSelectedProperty, ref field, value);
+    }
+
+    [AssignBinding]
+    [InheritDataTypeFromItems("LeftSource", AncestorType = typeof(SideBySideListSelect))]
+    public BindingBase? DisplayMemberBinding
+    {
+        get => _displayMemberBinding;
+        set
+        {
+            SetAndRaise(DisplayMemberBindingProperty, ref _displayMemberBinding, value);
+            if (_displayMemberBinding is ReflectionBinding b)
+            {
+                DisplayMemberPath = b.Path;
+            }
+            else if (_displayMemberBinding is CompiledBinding cb)
+            {
+                DisplayMemberPath = cb.Path?.ToString();
+            }
+        }
     }
 
     /// <summary>
@@ -171,6 +188,22 @@ public class SideBySideListSelect : TemplatedControl
         set => SetValue(HeaderMarginProperty, value);
     }
 
+    public bool IsLeftToRight
+    {
+        get => _isLeftToRight;
+        set => SetAndRaise(IsLeftToRightProperty, ref _isLeftToRight, value);
+    }
+
+    public IEnumerable? ItemsSource
+    {
+        get => _itemsSource;
+        set
+        {
+            SetAndRaise(ItemsSourceProperty, ref _itemsSource, value);
+            ReloadLists();
+        }
+    }
+
     /// <summary>
     ///     Gets or sets the left list header text.
     /// </summary>
@@ -196,24 +229,6 @@ public class SideBySideListSelect : TemplatedControl
     {
         get => GetValue(LeftListTemplateProperty);
         set => SetValue(LeftListTemplateProperty, value);
-    }
-
-    public IEnumerable? LeftSource
-    {
-        get => _leftSource;
-        set
-        {
-            if (_leftSource is INotifyCollectionChanged col)
-            {
-                col.CollectionChanged -= LeftSourceCollectionChanged;
-            }
-
-            SetAndRaise(LeftSourceProperty, ref _leftSource, value);
-            if (_leftSource is INotifyCollectionChanged colL)
-            {
-                colL.CollectionChanged += LeftSourceCollectionChanged;
-            }
-        }
     }
 
     /// <summary>
@@ -307,21 +322,13 @@ public class SideBySideListSelect : TemplatedControl
         set => SetValue(RightListTemplateProperty, value);
     }
 
-    public IEnumerable? RightSource
+    public IEnumerable? SelectedItems
     {
-        get => _rightSource;
+        get => _selectedItems;
         set
         {
-            if (_rightSource is INotifyCollectionChanged col)
-            {
-                col.CollectionChanged -= RightSourceCollectionChanged;
-            }
-
-            SetAndRaise(RightSourceProperty, ref _rightSource, value);
-            if (_rightSource is INotifyCollectionChanged colR)
-            {
-                colR.CollectionChanged += RightSourceCollectionChanged;
-            }
+            SetAndRaise(SelectedItemsProperty, ref _selectedItems, value);
+            ReloadLists();
         }
     }
 
@@ -332,23 +339,130 @@ public class SideBySideListSelect : TemplatedControl
     /// <summary>
     ///     Gets the collection of left items.
     /// </summary>
-    internal SortedFilterListCollection<object> LeftItems { get; }
+    internal SortedFilterListCollection<object> LeftItems { get; } = [];
 
     /// <summary>
     ///     Gets the collection of right items.
     /// </summary>
-    internal SortedFilterListCollection<object> RightItems { get; }
+    internal SortedFilterListCollection<object> RightItems { get; } = [];
+
+    #endregion
+
+    #region Events
+
+    private void LeftListOnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (_leftList?.SelectedItems?.Count > 0)
+        {
+            AddLeftToRightExecute();
+        }
+    }
+
+    private void LeftListOnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        CheckCanAddLeftRight();
+    }
+
+    private void RightListOnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (_rightList?.SelectedItems?.Count > 0)
+        {
+            AddRightToLeftExecute();
+        }
+    }
+
+    private void RightListOnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        CheckCanAddRightLeft();
+    }
+
+    /// <summary>
+    ///     Raised when the selected collection changes.
+    /// </summary>
+    public event CollectionChangeEventHandler? SelectedCollectionChanged;
 
     #endregion
 
     #region Public members
+
+    public void AddLeftToRightExecute()
+    {
+        if (_leftList?.SelectedItems?.Count > 0)
+        {
+            var moveList = new List<object>(_leftList.SelectedItems.Cast<object>());
+
+            if (!AllowCopiesInSelected || !IsLeftToRight)
+            {
+                LeftItems.RemoveRange(moveList);
+            }
+
+            if (IsLeftToRight || !AllowCopiesInSelected)
+            {
+                RightItems.AddRange(moveList);
+            }
+
+            UpdateSelectedItems();
+
+            if (SelectedCollectionChanged != null)
+            {
+                var e = new CollectionChangeEventArgs(CollectionChangeAction.Add, moveList);
+                SelectedCollectionChanged(this, e);
+            }
+        }
+    }
+
+    public void AddRightToLeftExecute()
+    {
+        if (_rightList?.SelectedItems?.Count > 0)
+        {
+            var moveList = new List<object>(_rightList.SelectedItems.Cast<object>());
+
+            if (!AllowCopiesInSelected || IsLeftToRight)
+            {
+                RightItems.RemoveRange(moveList);
+            }
+
+            if (!IsLeftToRight || !AllowCopiesInSelected)
+            {
+                LeftItems.AddRange(moveList);
+            }
+
+            UpdateSelectedItems();
+
+            if (SelectedCollectionChanged != null)
+            {
+                var e = new CollectionChangeEventArgs(CollectionChangeAction.Remove, moveList);
+                SelectedCollectionChanged(this, e);
+            }
+        }
+    }
+
+    public bool CanMoveAllLeftRight()
+    {
+        return LeftItems.Count > 0;
+    }
+
+    public bool CanMoveAllRightLeft()
+    {
+        return RightItems.Count > 0;
+    }
+
+    public bool CanMoveLeftRight()
+    {
+        return LeftItems.Count > 0 && _leftList?.SelectedItems?.Count > 0;
+    }
+
+    public bool CanMoveRightLeft()
+    {
+        return RightItems.Count > 0 && _rightList?.SelectedItems?.Count > 0;
+    }
 
     /// <summary>
     ///     Gets the selected items cast to the requested type.
     /// </summary>
     public IEnumerable<T> GetSelectedItems<T>()
     {
-        return RightItems.Cast<T>();
+        return IsLeftToRight ? RightItems.Cast<T>() : LeftItems.Cast<T>();
     }
 
     /// <summary>
@@ -356,7 +470,7 @@ public class SideBySideListSelect : TemplatedControl
     /// </summary>
     public IEnumerable<T> GetUnselectedItems<T>()
     {
-        return LeftItems.Cast<T>();
+        return IsLeftToRight ? LeftItems.Cast<T>() : RightItems.Cast<T>();
     }
 
     /// <summary>
@@ -390,11 +504,6 @@ public class SideBySideListSelect : TemplatedControl
             DisplayMemberPath = descriptionProperty;
         }
     }
-
-    /// <summary>
-    ///     Raised when the selected collection changes.
-    /// </summary>
-    public event CollectionChangeEventHandler? SelectedCollectionChanged;
 
     public void SetFilterLeftList(Func<object, bool>? filter)
     {
@@ -471,19 +580,23 @@ public class SideBySideListSelect : TemplatedControl
 
     #endregion
 
-    #region Private members
+    #region Internal members
 
-    private void AddAllLeftToRightExecute()
+    internal void AddAllLeftToRightExecute()
     {
         var moveList = new List<object>(LeftItems);
-        if (!AllowCopiesInSelected)
+
+        if (!AllowCopiesInSelected || !IsLeftToRight)
         {
             LeftItems.Clear();
-            UpdateLeftSource();
         }
 
-        RightItems.AddRange(moveList);
-        UpdateRightSource();
+        if (IsLeftToRight || !AllowCopiesInSelected)
+        {
+            RightItems.AddRange(moveList);
+        }
+
+        UpdateSelectedItems();
         if (SelectedCollectionChanged != null)
         {
             var e = new CollectionChangeEventArgs(CollectionChangeAction.Add, moveList);
@@ -491,16 +604,21 @@ public class SideBySideListSelect : TemplatedControl
         }
     }
 
-    private void AddAllRightToLeftExecute()
+    internal void AddAllRightToLeftExecute()
     {
         var moveList = new List<object>(RightItems);
-        RightItems.Clear();
-        UpdateRightSource();
-        if (!AllowCopiesInSelected)
+
+        if (IsLeftToRight || !AllowCopiesInSelected)
+        {
+            RightItems.Clear();
+        }
+
+        if (!AllowCopiesInSelected || !IsLeftToRight)
         {
             LeftItems.AddRange(moveList);
-            UpdateLeftSource();
         }
+
+        UpdateSelectedItems();
 
         if (SelectedCollectionChanged != null)
         {
@@ -509,63 +627,16 @@ public class SideBySideListSelect : TemplatedControl
         }
     }
 
-    private void AddLeftToRightExecute()
-    {
-        if (_leftList?.SelectedItems?.Count > 0)
-        {
-            var moveList = new List<object>(_leftList.SelectedItems.Cast<object>());
-            if (!AllowCopiesInSelected)
-            {
-                foreach (var item in moveList)
-                {
-                    LeftItems.Remove(item);
-                }
+    #endregion
 
-                UpdateLeftSource();
-            }
-
-            RightItems.AddRange(moveList);
-            UpdateRightSource();
-            if (SelectedCollectionChanged != null)
-            {
-                var e = new CollectionChangeEventArgs(CollectionChangeAction.Add, moveList);
-                SelectedCollectionChanged(this, e);
-            }
-        }
-    }
-
-    private void AddRightToLeftExecute()
-    {
-        if (_rightList?.SelectedItems?.Count > 0)
-        {
-            var moveList = new List<object>(_rightList.SelectedItems.Cast<object>());
-            foreach (var item in moveList)
-            {
-                RightItems.Remove(item);
-            }
-
-            UpdateRightSource();
-
-            if (!AllowCopiesInSelected)
-            {
-                LeftItems.AddRange(moveList);
-                UpdateLeftSource();
-            }
-
-            if (SelectedCollectionChanged != null)
-            {
-                var e = new CollectionChangeEventArgs(CollectionChangeAction.Remove, moveList);
-                SelectedCollectionChanged(this, e);
-            }
-        }
-    }
+    #region Private members
 
     private void CheckCanAddLeftRight()
     {
         if (_btnMoveAllRight != null && _btnMoveRight != null)
         {
-            _btnMoveRight.IsEnabled = LeftItems.Count > 0 && _leftList?.SelectedItems?.Count > 0;
-            _btnMoveAllRight.IsEnabled = LeftItems.Count > 0;
+            _btnMoveRight.IsEnabled = CanMoveLeftRight();
+            _btnMoveAllRight.IsEnabled = CanMoveAllLeftRight();
         }
     }
 
@@ -573,8 +644,8 @@ public class SideBySideListSelect : TemplatedControl
     {
         if (_btnMoveAllLeft != null && _btnMoveLeft != null)
         {
-            _btnMoveLeft.IsEnabled = RightItems.Count > 0 && _rightList?.SelectedItems?.Count > 0;
-            _btnMoveAllLeft.IsEnabled = RightItems.Count > 0;
+            _btnMoveLeft.IsEnabled = CanMoveRightLeft();
+            _btnMoveAllLeft.IsEnabled = CanMoveAllRightLeft();
         }
     }
 
@@ -603,58 +674,38 @@ public class SideBySideListSelect : TemplatedControl
         }
     }
 
-    private void LeftListOnDoubleTapped(object? sender, TappedEventArgs e)
+    private void ReloadLists()
     {
-        if (_leftList?.SelectedItems?.Count > 0)
-        {
-            AddLeftToRightExecute();
-        }
-    }
+        LeftItems.Clear();
+        RightItems.Clear();
 
-    private void LeftListOnSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
+        if (IsLeftToRight)
+        {
+            if (ItemsSource != null)
+            {
+                LeftItems.AddRange(ItemsSource.Cast<object>());
+            }
+
+            if (SelectedItems != null)
+            {
+                RightItems.AddRange(SelectedItems.Cast<object>());
+            }
+        }
+        else
+        {
+            if (ItemsSource != null)
+            {
+                RightItems.AddRange(ItemsSource.Cast<object>());
+            }
+
+            if (SelectedItems != null)
+            {
+                LeftItems.AddRange(SelectedItems.Cast<object>());
+            }
+        }
+
         CheckCanAddLeftRight();
-    }
-
-    private void LeftSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (!_changeLeftItems)
-        {
-            LeftItems.Clear();
-            if (_leftSource != null)
-            {
-                LeftItems.AddRange(_leftSource.Cast<object>());
-            }
-
-            CheckCanAddLeftRight();
-        }
-    }
-
-    private void RightListOnDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (_rightList?.SelectedItems?.Count > 0)
-        {
-            AddRightToLeftExecute();
-        }
-    }
-
-    private void RightListOnSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
         CheckCanAddRightLeft();
-    }
-
-    private void RightSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (!_changeRightItems)
-        {
-            RightItems.Clear();
-            if (_rightSource != null)
-            {
-                RightItems.AddRange(_rightSource.Cast<object>());
-            }
-
-            CheckCanAddRightLeft();
-        }
     }
 
     private void SortLeftList()
@@ -673,43 +724,31 @@ public class SideBySideListSelect : TemplatedControl
         RightItems.Sort();
     }
 
-    private void UpdateLeftSource()
+    private void UpdateSelectedItems()
     {
-        if (_leftSource is IList lCollection)
+        if (SelectedItems is not IList list)
         {
-            _changeLeftItems = true;
-            try
+            return;
+        }
+
+        var selectedList = new List<object>(IsLeftToRight ? RightItems : LeftItems);
+        var removeList = new List<object>();
+        foreach (var item in list)
+        {
+            if (!selectedList.Remove(item))
             {
-                lCollection.Clear();
-                foreach (var item in LeftItems)
-                {
-                    lCollection.Add(item);
-                }
-            }
-            finally
-            {
-                _changeLeftItems = false;
+                removeList.Add(item);
             }
         }
-    }
 
-    private void UpdateRightSource()
-    {
-        if (_rightSource is IList rCollection)
+        foreach (var r in removeList)
         {
-            _changeRightItems = true;
-            try
-            {
-                rCollection.Clear();
-                foreach (var rightItem in RightItems)
-                {
-                    rCollection.Add(rightItem);
-                }
-            }
-            finally
-            {
-                _changeRightItems = false;
-            }
+            list.Remove(r);
+        }
+
+        foreach (var a in selectedList)
+        {
+            list.Add(a);
         }
     }
 
@@ -797,6 +836,14 @@ public class SideBySideListSelect : TemplatedControl
 
         #endregion
 
+        #region Events
+
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        #endregion
+
         #region Public members
 
         /// <summary>
@@ -832,6 +879,24 @@ public class SideBySideListSelect : TemplatedControl
         {
             _blockNotifications = false;
             OnCollectionReset();
+        }
+
+        public void RemoveRange(IEnumerable<T> items)
+        {
+            BlockNotifications();
+            try
+            {
+                foreach (var item in items)
+                {
+                    _items.Remove(item);
+                }
+
+                Sort();
+            }
+            finally
+            {
+                EnableNotifications();
+            }
         }
 
         public void SetFilter(Func<object, bool>? filter)
@@ -1103,18 +1168,6 @@ public class SideBySideListSelect : TemplatedControl
             OnIndexerPropertyChanged();
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, -1));
         }
-
-        #endregion
-
-        #region Implementing INotifyCollectionChanged
-
-        public event NotifyCollectionChangedEventHandler? CollectionChanged;
-
-        #endregion
-
-        #region Implementing INotifyPropertyChanged
-
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         #endregion
     }
