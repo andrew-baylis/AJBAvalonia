@@ -87,13 +87,25 @@
                                 Grid.Column="0"
                                 BorderBrush="{TemplateBinding ListBoxBorderBrush}"
                                 BorderThickness="{TemplateBinding ListBoxBorderThickness}"
-                                SelectionMode="Multiple" />
+                                SelectionMode="Multiple">
+                                <ListBox.Styles>
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="Padding" Value="4,2" />
+                                    </Style>
+                                </ListBox.Styles>
+                            </ListBox>
                             <ListBox x:Name="RightList"
                                 Grid.Row="1"
                                 Grid.Column="2"
                                 BorderBrush="{TemplateBinding ListBoxBorderBrush}"
                                 BorderThickness="{TemplateBinding ListBoxBorderThickness}"
-                                SelectionMode="Multiple" />
+                                SelectionMode="Multiple">
+                                <ListBox.Styles>
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="Padding" Value="4,2" />
+                                    </Style>
+                                </ListBox.Styles>
+                            </ListBox>
                         </Grid>
                     </Border>
                 </Grid>
