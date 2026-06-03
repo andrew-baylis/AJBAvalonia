@@ -275,6 +275,7 @@
 
         <Style Selector="^:error /template/ Border#PART_BorderElement">
             <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
         </Style>
 
         <Style Selector="^[UseFloatingWatermark=true]:not(:empty) /template/ TextBlock#PART_FloatingWatermark">

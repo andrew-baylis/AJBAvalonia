@@ -86,7 +86,7 @@ public class SideBySideListSelect : TemplatedControl
 
     public static readonly DirectProperty<SideBySideListSelect, IEnumerable?> SelectedItemsProperty =
         AvaloniaProperty.RegisterDirect<SideBySideListSelect, IEnumerable?>(nameof(SelectedItems), o => o.SelectedItems,
-            (o, v) => o.SelectedItems = v);
+            (o, v) => o.SelectedItems = v, enableDataValidation: true);
 
     #endregion
 

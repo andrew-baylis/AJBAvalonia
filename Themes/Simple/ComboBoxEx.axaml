@@ -166,7 +166,8 @@
 
         <!--  Error State  -->
         <Style Selector="^:error /template/ Border#Background">
-            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
 
         <!--  Focus Pressed State  -->

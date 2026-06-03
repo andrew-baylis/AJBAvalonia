@@ -11,93 +11,123 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid>
-                    <Border x:Name="PART_Border"
-                        Padding="{TemplateBinding Padding}"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="{TemplateBinding CornerRadius}">
-                        <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
-                            <TextBlock
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                VerticalAlignment="Center"
-                                FontStyle="{TemplateBinding HeaderFontStyle}"
-                                FontWeight="{TemplateBinding HeaderFontWeight}"
-                                Text="{TemplateBinding LeftHeaderText}" />
-                            <TextBlock
-                                Grid.Row="0"
-                                Grid.Column="2"
-                                VerticalAlignment="Center"
-                                FontStyle="{TemplateBinding HeaderFontStyle}"
-                                FontWeight="{TemplateBinding HeaderFontWeight}"
-                                Text="{TemplateBinding RightHeaderText}" />
-                            <StackPanel
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                VerticalAlignment="Center"
-                                Orientation="Vertical">
-                                <Button x:Name="btnMoveRight"
-                                    Width="30"
-                                    Height="24"
-                                    Margin="2,5"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Background="Transparent"
-                                    BorderBrush="Transparent"
-                                    BorderThickness="0">
-                                    &gt;
-                                </Button>
-                                <Button x:Name="btnMoveAllRight"
-                                    Width="30"
-                                    Height="24"
-                                    Margin="2,5"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Background="Transparent"
-                                    BorderBrush="Transparent"
-                                    BorderThickness="0">
-                                    &gt;&gt;
-                                </Button>
-                                <Button x:Name="btnMoveLeft"
-                                    Width="30"
-                                    Height="24"
-                                    Margin="2,20,2,5"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Background="Transparent"
-                                    BorderBrush="Transparent"
-                                    BorderThickness="0">
-                                    &lt;
-                                </Button>
-                                <Button x:Name="btnMoveAllLeft"
-                                    Width="30"
-                                    Height="24"
-                                    Margin="2,5"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
-                                    Background="Transparent"
-                                    BorderBrush="Transparent"
-                                    BorderThickness="0">
-                                    &lt;&lt;
-                                </Button>
-                            </StackPanel>
-                            <ListBox x:Name="LeftList"
-                                Grid.Row="1"
-                                Grid.Column="0"
-                                BorderBrush="{TemplateBinding ListBoxBorderBrush}"
-                                BorderThickness="{TemplateBinding ListBoxBorderThickness}"
-                                SelectionMode="Multiple" />
-                            <ListBox x:Name="RightList"
-                                Grid.Row="1"
-                                Grid.Column="2"
-                                BorderBrush="{TemplateBinding ListBoxBorderBrush}"
-                                BorderThickness="{TemplateBinding ListBoxBorderThickness}"
-                                SelectionMode="Multiple" />
-                        </Grid>
-                    </Border>
+                    <DataValidationErrors>
+                        <Border x:Name="PART_Border"
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                            <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Margin="2"
+                                    VerticalAlignment="Center"
+                                    FontStyle="{TemplateBinding HeaderFontStyle}"
+                                    FontWeight="{TemplateBinding HeaderFontWeight}"
+                                    Text="{TemplateBinding LeftHeaderText}" />
+                                <TextBlock
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    Margin="2"
+                                    VerticalAlignment="Center"
+                                    FontStyle="{TemplateBinding HeaderFontStyle}"
+                                    FontWeight="{TemplateBinding HeaderFontWeight}"
+                                    Text="{TemplateBinding RightHeaderText}" />
+                                <StackPanel
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Orientation="Vertical">
+                                    <Button x:Name="btnMoveRight"
+                                        Width="30"
+                                        Height="24"
+                                        Margin="2,5"
+                                        HorizontalContentAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        Background="Transparent"
+                                        BorderBrush="Transparent"
+                                        BorderThickness="0">
+                                        &gt;
+                                    </Button>
+                                    <Button x:Name="btnMoveAllRight"
+                                        Width="30"
+                                        Height="24"
+                                        Margin="2,5"
+                                        HorizontalContentAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        Background="Transparent"
+                                        BorderBrush="Transparent"
+                                        BorderThickness="0">
+                                        &gt;&gt;
+                                    </Button>
+                                    <Button x:Name="btnMoveLeft"
+                                        Width="30"
+                                        Height="24"
+                                        Margin="2,20,2,5"
+                                        HorizontalContentAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        Background="Transparent"
+                                        BorderBrush="Transparent"
+                                        BorderThickness="0">
+                                        &lt;
+                                    </Button>
+                                    <Button x:Name="btnMoveAllLeft"
+                                        Width="30"
+                                        Height="24"
+                                        Margin="2,5"
+                                        HorizontalContentAlignment="Center"
+                                        VerticalContentAlignment="Center"
+                                        Background="Transparent"
+                                        BorderBrush="Transparent"
+                                        BorderThickness="0">
+                                        &lt;&lt;
+                                    </Button>
+                                </StackPanel>
+                                <ListBox x:Name="LeftList"
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    VerticalAlignment="Stretch"
+                                    BorderBrush="{TemplateBinding ListBoxBorderBrush}"
+                                    BorderThickness="{TemplateBinding ListBoxBorderThickness}"
+                                    SelectionMode="Multiple">
+                                    <ListBox.Styles>
+                                        <Style Selector="ListBoxItem">
+                                            <Setter Property="Padding" Value="4,2" />
+                                        </Style>
+                                    </ListBox.Styles>
+                                </ListBox>
+                                <ListBox x:Name="RightList"
+                                    Grid.Row="1"
+                                    Grid.Column="2"
+                                    VerticalAlignment="Stretch"
+                                    BorderBrush="{TemplateBinding ListBoxBorderBrush}"
+                                    BorderThickness="{TemplateBinding ListBoxBorderThickness}"
+                                    SelectionMode="Multiple">
+                                    <ListBox.Styles>
+                                        <Style Selector="ListBoxItem">
+                                            <Setter Property="Padding" Value="4,2" />
+                                        </Style>
+                                    </ListBox.Styles>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+                    </DataValidationErrors>
                 </Grid>
             </ControlTemplate>
         </Setter>
+        <Style Selector="^:error">
+            <Style Selector="^[IsLeftToRight=True] /template/ ListBox#RightList">
+                <Setter Property="BorderBrush" Value="Red" />
+                <Setter Property="Background" Value="LightPink" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+            <Style Selector="^[IsLeftToRight=False] /template/ ListBox#LeftList">
+                <Setter Property="BorderBrush" Value="Red" />
+                <Setter Property="Background" Value="LightPink" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+        </Style>
     </ControlTheme>
 </ResourceDictionary>
