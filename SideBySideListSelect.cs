@@ -1,6 +1,6 @@
 ﻿// SideBySideListSelect.cs
 // Andrew Baylis
-// Created: 01/06/2026
+// Created: 05/06/2026
 
 #region using
 
@@ -15,6 +15,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Metadata;
 
@@ -123,7 +124,7 @@ public class SideBySideListSelect : TemplatedControl
     }
 
     [AssignBinding]
-    [InheritDataTypeFromItems("LeftSource", AncestorType = typeof(SideBySideListSelect))]
+    [InheritDataTypeFromItems("ItemsSource", AncestorType = typeof(SideBySideListSelect))]
     public BindingBase? DisplayMemberBinding
     {
         get => _displayMemberBinding;
@@ -593,6 +594,13 @@ public class SideBySideListSelect : TemplatedControl
         InternalSetDisplayBinding();
     }
 
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+        CheckCanAddLeftRight();
+        CheckCanAddRightLeft();
+    }
+
     #endregion
 
     #region Internal members
@@ -707,6 +715,9 @@ public class SideBySideListSelect : TemplatedControl
                 RightItems.AddRange(ItemsSource.Cast<object>());
             }
         }
+
+        CheckCanAddLeftRight();
+        CheckCanAddRightLeft();
     }
 
     private void ReloadLists()
@@ -761,6 +772,9 @@ public class SideBySideListSelect : TemplatedControl
                 LeftItems.AddRange(SelectedItems.Cast<object>());
             }
         }
+
+        CheckCanAddLeftRight();
+        CheckCanAddRightLeft();
     }
 
     private void SortLeftList()

@@ -1,6 +1,6 @@
 ﻿// FileSelectControl.cs
 // Andrew Baylis
-// Created: 20/05/2026
+// Created: 09/06/2026
 
 #region using
 
@@ -99,6 +99,8 @@ public class FileSelectControl : TemplatedControl
 
     private string? _text;
 
+    private Border? _textDisplay;
+
     #endregion
 
     public FileSelectControl()
@@ -194,7 +196,57 @@ public class FileSelectControl : TemplatedControl
 
     #endregion
 
-    #region Public members
+    #region Events
+
+    private void ClearButtonOnClick(object? sender, RoutedEventArgs e)
+    {
+        FileName = null;
+    }
+
+    private async Task FileNameEditOnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (ShowFileDialogOnTextClick)
+        {
+            e.Handled = true;
+            await ShowFileDialogExecute(sender, e);
+        }
+    }
+
+    private bool _dialogShowing;
+
+    private async Task ShowFileDialogExecute(object? sender, RoutedEventArgs routedEventArgs)
+    {
+        if (!_dialogShowing)
+        {
+            _dialogShowing = true;
+            try
+            {
+                await Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    var filename = DialogType switch
+                    {
+                        FileDialogTypeEnum.FileOpen => await FileDialogExtensions.OpenFileDialog(DialogTitle ?? "Open File",
+                            DialogFilter),
+                        FileDialogTypeEnum.FileOpenImage => await FileDialogExtensions.OpenFileImageDialog(
+                            DialogTitle ?? "Open Image File", DialogFilter),
+                        FileDialogTypeEnum.FileSave => await FileDialogExtensions.SaveFileDialog(DialogTitle ?? "Save File",
+                            DefaultExtension, null, true, DialogFilter),
+                        _ => throw new ArgumentOutOfRangeException(nameof(DialogType))
+                    };
+
+                    if (!string.IsNullOrEmpty(filename))
+                    {
+                        FileName = filename.Replace("%20", " ");
+                    }
+                });
+            }
+            finally
+            {
+                _dialogShowing = false;
+            }
+        }
+        
+    }
 
     public event EventHandler<TextChangedEventArgs> TextChanged
     {
@@ -206,7 +258,6 @@ public class FileSelectControl : TemplatedControl
 
     #region Protected members
 
-    private Border? _textDisplay;
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
@@ -224,19 +275,8 @@ public class FileSelectControl : TemplatedControl
         }
 
         _dropButton = e.NameScope.Find<Button>("dropButton");
-        _dropButton?.Click += ShowFileDialogExecute;
+        _dropButton?.Click += async (sender, args) => await ShowFileDialogExecute(sender, args);
     }
-
-    //protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    //{
-    //    _textDisplay?.AddHandler(PointerPressedEvent, FileNameEditOnPointerPressed,
-    //        RoutingStrategies.Bubble | RoutingStrategies.Tunnel);
-    //}
-
-    //protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-    //{
-    //    _textDisplay?.RemoveHandler(PointerPressedEvent, FileNameEditOnPointerPressed);
-    //}
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -255,20 +295,6 @@ public class FileSelectControl : TemplatedControl
 
     #region Private members
 
-    private void ClearButtonOnClick(object? sender, RoutedEventArgs e)
-    {
-        FileName = null;
-    }
-
-    private void FileNameEditOnPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (ShowFileDialogOnTextClick)
-        {
-            e.Handled = true;
-            ShowFileDialogExecute(sender, e);
-        }
-    }
-
     private void SetDisplayText()
     {
         if (!string.IsNullOrEmpty(FileName))
@@ -285,30 +311,8 @@ public class FileSelectControl : TemplatedControl
         {
             Text = null;
         }
-        
+
         Dispatcher.UIThread.Post(() => RaiseEvent(new TextChangedEventArgs(TextChangedEvent)));
-    }
-
-    private void ShowFileDialogExecute(object? sender, RoutedEventArgs routedEventArgs)
-    {
-        Dispatcher.UIThread.Invoke(async () =>
-        {
-            var filename = DialogType switch
-            {
-                FileDialogTypeEnum.FileOpen => await FileDialogExtensions.OpenFileDialog(DialogTitle ?? "Open File",
-                    DialogFilter),
-                FileDialogTypeEnum.FileOpenImage => await FileDialogExtensions.OpenFileImageDialog(
-                    DialogTitle ?? "Open Image File", DialogFilter),
-                FileDialogTypeEnum.FileSave => await FileDialogExtensions.SaveFileDialog(DialogTitle ?? "Save File",
-                    DefaultExtension, null, true, DialogFilter),
-                _ => throw new ArgumentOutOfRangeException(nameof(DialogType))
-            };
-
-            if (!string.IsNullOrEmpty(filename))
-            {
-                FileName = filename.Replace("%20", " ");
-            }
-        });
     }
 
     #endregion
