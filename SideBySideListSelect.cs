@@ -1,6 +1,6 @@
 ﻿// SideBySideListSelect.cs
 // Andrew Baylis
-// Created: 05/06/2026
+// Created: 18/06/2026
 
 #region using
 
@@ -93,6 +93,8 @@ public class SideBySideListSelect : TemplatedControl
 
     #region Private fields
 
+    private bool _allowCopiesInSelected;
+
     private Button? _btnMoveAllLeft;
     private Button? _btnMoveAllRight;
     private Button? _btnMoveLeft;
@@ -114,13 +116,10 @@ public class SideBySideListSelect : TemplatedControl
 
     #region Public properties
 
-    /// <summary>
-    ///     Gets or sets whether copies are allowed when moving items to selected list.
-    /// </summary>
     public bool AllowCopiesInSelected
     {
-        get;
-        set => SetAndRaise(AllowCopiesInSelectedProperty, ref field, value);
+        get => _allowCopiesInSelected;
+        set => SetAndRaise(AllowCopiesInSelectedProperty, ref _allowCopiesInSelected, value);
     }
 
     [AssignBinding]
@@ -198,16 +197,19 @@ public class SideBySideListSelect : TemplatedControl
         get => _itemsSource;
         set
         {
-            if (_itemsSource is INotifyCollectionChanged col)
+            if (!ReferenceEquals(_itemsSource, value))
             {
-                col.CollectionChanged -= ItemsSourceCollectionChanged;
-            }
+                if (_itemsSource is INotifyCollectionChanged col)
+                {
+                    col.CollectionChanged -= ItemsSourceCollectionChanged;
+                }
 
-            SetAndRaise(ItemsSourceProperty, ref _itemsSource, value);
-            ReloadLists();
-            if (_itemsSource is INotifyCollectionChanged col1)
-            {
-                col1.CollectionChanged += ItemsSourceCollectionChanged;
+                SetAndRaise(ItemsSourceProperty, ref _itemsSource, value);
+                ReloadLists();
+                if (_itemsSource is INotifyCollectionChanged col1)
+                {
+                    col1.CollectionChanged += ItemsSourceCollectionChanged;
+                }
             }
         }
     }
@@ -335,17 +337,20 @@ public class SideBySideListSelect : TemplatedControl
         get => _selectedItems;
         set
         {
-            if (_selectedItems is INotifyCollectionChanged col)
+            if (!ReferenceEquals(_selectedItems, value))
             {
-                col.CollectionChanged -= SelectedItemsCollectionChanged;
-            }
+                if (_selectedItems is INotifyCollectionChanged col)
+                {
+                    col.CollectionChanged -= SelectedItemsCollectionChanged;
+                }
 
-            SetAndRaise(SelectedItemsProperty, ref _selectedItems, value);
+                SetAndRaise(SelectedItemsProperty, ref _selectedItems, value);
 
-            ReloadLists();
-            if (_selectedItems is INotifyCollectionChanged col1)
-            {
-                col1.CollectionChanged += SelectedItemsCollectionChanged;
+                ReloadLists();
+                if (_selectedItems is INotifyCollectionChanged col1)
+                {
+                    col1.CollectionChanged += SelectedItemsCollectionChanged;
+                }
             }
         }
     }
@@ -469,17 +474,26 @@ public class SideBySideListSelect : TemplatedControl
         {
             var moveList = new List<object>(LeftListBox.SelectedItems.Cast<object>());
 
-            if (!AllowCopiesInSelected || !IsLeftToRight)
+            if (IsLeftToRight)
             {
-                LeftItems.RemoveRange(moveList);
-            }
-
-            if (IsLeftToRight || !AllowCopiesInSelected)
-            {
+                //left is source list, right is selected list
                 RightItems.AddRange(moveList);
+                if (!AllowCopiesInSelected)
+                {
+                    LeftItems.RemoveRange(moveList);
+                }
+            }
+            else
+            {
+                //left is selected list, right is source list
+                LeftItems.RemoveRange(moveList);
+                if (!AllowCopiesInSelected)
+                {
+                    RightItems.AddRange(moveList);
+                }
             }
 
-            UpdateSelectedItems();
+UpdateSelectedItems();
 
             if (SelectedCollectionChanged != null)
             {
@@ -495,14 +509,23 @@ public class SideBySideListSelect : TemplatedControl
         {
             var moveList = new List<object>(RightListBox.SelectedItems.Cast<object>());
 
-            if (!AllowCopiesInSelected || IsLeftToRight)
+            if (IsLeftToRight)
             {
+                //left is source list, right is selected list
                 RightItems.RemoveRange(moveList);
+                if (!AllowCopiesInSelected)
+                {
+                    LeftItems.AddRange(moveList);
+                }
             }
-
-            if (!IsLeftToRight || !AllowCopiesInSelected)
+            else
             {
+                //left is selected list, right is source list
                 LeftItems.AddRange(moveList);
+                if (!AllowCopiesInSelected)
+                {
+                    RightItems.RemoveRange(moveList);
+                }
             }
 
             UpdateSelectedItems();
@@ -609,14 +632,25 @@ public class SideBySideListSelect : TemplatedControl
     {
         var moveList = new List<object>(LeftItems);
 
-        if (!AllowCopiesInSelected || !IsLeftToRight)
+        if (IsLeftToRight)
         {
-            LeftItems.Clear();
-        }
-
-        if (IsLeftToRight || !AllowCopiesInSelected)
-        {
+            //right is selected list, left is source list
             RightItems.AddRange(moveList);
+            if (!AllowCopiesInSelected)
+            {
+                //remove all items from left list if not allowing duplicates in selected
+                LeftItems.Clear();
+            }
+        }
+        else
+        {
+            //right is source list, left is selected list
+            LeftItems.Clear();
+            if (!AllowCopiesInSelected)
+            {
+                //if no duplicates, right list will have fewer items
+                RightItems.AddRange(moveList);
+            }
         }
 
         UpdateSelectedItems();
@@ -631,14 +665,23 @@ public class SideBySideListSelect : TemplatedControl
     {
         var moveList = new List<object>(RightItems);
 
-        if (IsLeftToRight || !AllowCopiesInSelected)
+        if (IsLeftToRight)
         {
+            //right is selected list, left is source list
             RightItems.Clear();
+            if (!AllowCopiesInSelected)
+            {
+                LeftItems.AddRange(moveList);
+            }
         }
-
-        if (!AllowCopiesInSelected || !IsLeftToRight)
+        else
         {
+            //right is source list, left is selected list
             LeftItems.AddRange(moveList);
+            if(!AllowCopiesInSelected)
+            {
+                RightItems.Clear();
+            }
         }
 
         UpdateSelectedItems();
@@ -795,7 +838,7 @@ public class SideBySideListSelect : TemplatedControl
 
     private void UpdateSelectedItems()
     {
-        if (SelectedItems is not IList list)
+        if (_selectedItems is not IList list)
         {
             return;
         }
@@ -840,7 +883,7 @@ public class SideBySideListSelect : TemplatedControl
 
         private readonly List<T> _items = new();
 
-        private bool _blockNotifications;
+private bool _blockNotifications;
         private Func<object, bool>? _filter;
         private IComparer<T>? _sortComparer;
         private string? _sortKey;
@@ -851,7 +894,7 @@ public class SideBySideListSelect : TemplatedControl
 
         #region Public properties
 
-        public int Count => _items.Count;
+public int Count => _items.Count;
 
         public int FilteredCount => _items.Count(item => item != null && (_filter == null || _filter(item)));
 
@@ -931,8 +974,7 @@ public class SideBySideListSelect : TemplatedControl
             BlockNotifications();
             try
             {
-                _items.AddRange(items);
-
+_items.AddRange(items);
                 Sort();
             }
             finally
@@ -1124,11 +1166,11 @@ public class SideBySideListSelect : TemplatedControl
 
         public void Add(T item)
         {
-            _items.Add(item);
-            Sort();
-            OnCountPropertyChanged();
-            OnCollectionChanged(
-                new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, _items.Count - 1));
+                _items.Add(item);
+                Sort();
+                OnCountPropertyChanged();
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item,
+                    _items.Count - 1));
         }
 
         public void Clear()
@@ -1194,7 +1236,13 @@ public class SideBySideListSelect : TemplatedControl
 
         public int Add(object? value)
         {
-            throw new NotImplementedException();
+            if (value is T t)
+            {
+                Add(t);
+                return Count;
+            }
+
+            return -1;
         }
 
         public bool Contains(object? value)

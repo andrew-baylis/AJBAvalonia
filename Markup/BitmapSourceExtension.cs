@@ -13,7 +13,7 @@ using Avalonia.Platform;
 
 namespace AJBAvalonia.Markup;
 
-public class BitmapSourceExtension : MarkupExtension
+public class BitmapSourceExtension
 {
     #region Properties
 
@@ -23,7 +23,7 @@ public class BitmapSourceExtension : MarkupExtension
 
     #region Override Methods
 
-    public override Bitmap ProvideValue(IServiceProvider serviceProvider)
+    public Bitmap ProvideValue(IServiceProvider serviceProvider)
     {
         if (Source != null)
         {
