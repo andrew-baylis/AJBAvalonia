@@ -1,9 +1,14 @@
 ﻿// CheckComboBoxEx.cs
-//  Andrew Baylis
-//  Created: 25/11/2025
+// Andrew Baylis
+// Created: 11/07/2026
 
 #region using
 
+using System.Collections;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -16,11 +21,6 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Metadata;
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Globalization;
 
 #endregion
 
@@ -32,94 +32,123 @@ namespace AJBAvalonia;
 /// </summary>
 public class CheckComboBoxEx : TemplatedControl
 {
-    #region Avalonia Properties
+    #region Static Public
 
     public static readonly StyledProperty<IBrush?> ClearButtonBackgroundProperty =
         AvaloniaProperty.Register<CheckComboBoxEx, IBrush?>(nameof(ClearButtonBackground), Brushes.Transparent);
 
-    public static readonly StyledProperty<BindingBase?> DisplayMemberBindingProperty = AvaloniaProperty.Register<CheckComboBoxEx, BindingBase?>(nameof(DisplayMemberBinding));
+    public static readonly StyledProperty<BindingBase?> DisplayMemberBindingProperty =
+        AvaloniaProperty.Register<CheckComboBoxEx, BindingBase?>(nameof(DisplayMemberBinding));
 
     public static readonly DirectProperty<CheckComboBoxEx, Geometry?> DropGlyphPathProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, Geometry?>(nameof(DropGlyphPath), o => o.DropGlyphPath, (o, v) => o.DropGlyphPath = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, Geometry?>(nameof(DropGlyphPath), o => o.DropGlyphPath,
+            (o, v) => o.DropGlyphPath = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, double?> DropGlyphSizeProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, double?>(nameof(DropGlyphSize), o => o.DropGlyphSize, (o, v) => o.DropGlyphSize = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, double?>(nameof(DropGlyphSize), o => o.DropGlyphSize,
+            (o, v) => o.DropGlyphSize = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, ComboGlyphEnum> GlyphTypeProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, ComboGlyphEnum>(nameof(GlyphType), o => o.GlyphType, (o, v) => o.GlyphType = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, ComboGlyphEnum>(nameof(GlyphType), o => o.GlyphType,
+            (o, v) => o.GlyphType = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, HorizontalAlignment> HorizontalContentAlignmentProperty =
         AvaloniaProperty.RegisterDirect<CheckComboBoxEx, HorizontalAlignment>(nameof(HorizontalContentAlignment),
-                                                                              o => o.HorizontalContentAlignment,
-                                                                              (o, v) => o.HorizontalContentAlignment = v);
+            o => o.HorizontalContentAlignment,
+            (o, v) => o.HorizontalContentAlignment = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, bool> IsDropDownOpenProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, bool>(nameof(IsDropDownOpen), o => o.IsDropDownOpen, (o, v) => o.IsDropDownOpen = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, bool>(nameof(IsDropDownOpen), o => o.IsDropDownOpen,
+            (o, v) => o.IsDropDownOpen = v);
 
-    public static readonly StyledProperty<IEnumerable?> ItemsSourceProperty = AvaloniaProperty.Register<CheckComboBoxEx, IEnumerable?>(nameof(ItemsSource));
+    public static readonly StyledProperty<IEnumerable?> ItemsSourceProperty =
+        AvaloniaProperty.Register<CheckComboBoxEx, IEnumerable?>(nameof(ItemsSource));
 
     public static readonly DirectProperty<CheckComboBoxEx, IDataTemplate?> ItemTemplateProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IDataTemplate?>(nameof(ItemTemplate), o => o.ItemTemplate, (o, v) => o.ItemTemplate = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IDataTemplate?>(nameof(ItemTemplate), o => o.ItemTemplate,
+            (o, v) => o.ItemTemplate = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, int> MaxDropDownHeightProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, int>(nameof(MaxDropDownHeight), o => o.MaxDropDownHeight, (o, v) => o.MaxDropDownHeight = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, int>(nameof(MaxDropDownHeight), o => o.MaxDropDownHeight,
+            (o, v) => o.MaxDropDownHeight = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, int> MaxSelectedItemsBeforeSummaryTextProperty =
         AvaloniaProperty.RegisterDirect<CheckComboBoxEx, int>(nameof(MaxSelectedItemsBeforeSummaryText),
-                                                              o => o.MaxSelectedItemsBeforeSummaryText,
-                                                              (o, v) => o.MaxSelectedItemsBeforeSummaryText = v);
+            o => o.MaxSelectedItemsBeforeSummaryText,
+            (o, v) => o.MaxSelectedItemsBeforeSummaryText = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, FontStyle> PlaceholderFontStyleProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, FontStyle>(nameof(PlaceholderFontStyle), o => o.PlaceholderFontStyle, (o, v) => o.PlaceholderFontStyle = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, FontStyle>(nameof(PlaceholderFontStyle),
+            o => o.PlaceholderFontStyle, (o, v) => o.PlaceholderFontStyle = v);
 
-    public static readonly StyledProperty<IBrush?> PlaceholderForegroundProperty = AvaloniaProperty.Register<CheckComboBoxEx, IBrush?>(nameof(PlaceholderForeground));
+    public static readonly StyledProperty<IBrush?> PlaceholderForegroundProperty =
+        AvaloniaProperty.Register<CheckComboBoxEx, IBrush?>(nameof(PlaceholderForeground));
 
-    public static readonly StyledProperty<string?> PlaceholderTextProperty = AvaloniaProperty.Register<CheckComboBoxEx, string?>(nameof(PlaceholderText));
+    public static readonly StyledProperty<string?> PlaceholderTextProperty =
+        AvaloniaProperty.Register<CheckComboBoxEx, string?>(nameof(PlaceholderText));
 
     public static readonly DirectProperty<CheckComboBoxEx, int> SelectedCountProperty =
         AvaloniaProperty.RegisterDirect<CheckComboBoxEx, int>(nameof(SelectedCount), o => o.SelectedCount);
 
     public static readonly DirectProperty<CheckComboBoxEx, IBrush?> SelectedItemBackgroundProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IBrush?>(nameof(SelectedItemBackground), o => o.SelectedItemBackground, (o, v) => o.SelectedItemBackground = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IBrush?>(nameof(SelectedItemBackground),
+            o => o.SelectedItemBackground, (o, v) => o.SelectedItemBackground = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, IBrush?> SelectedItemBorderBrushProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IBrush?>(nameof(SelectedItemBorderBrush), o => o.SelectedItemBorderBrush, (o, v) => o.SelectedItemBorderBrush = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IBrush?>(nameof(SelectedItemBorderBrush),
+            o => o.SelectedItemBorderBrush, (o, v) => o.SelectedItemBorderBrush = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, CornerRadius> SelectedItemCornerRadiusProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, CornerRadius>(nameof(SelectedItemCornerRadius), o => o.SelectedItemCornerRadius, (o, v) => o.SelectedItemCornerRadius = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, CornerRadius>(nameof(SelectedItemCornerRadius),
+            o => o.SelectedItemCornerRadius, (o, v) => o.SelectedItemCornerRadius = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, Thickness> SelectedItemsBorderThicknessProperty =
         AvaloniaProperty.RegisterDirect<CheckComboBoxEx, Thickness>(nameof(SelectedItemsBorderThickness),
-                                                                    o => o.SelectedItemsBorderThickness,
-                                                                    (o, v) => o.SelectedItemsBorderThickness = v);
+            o => o.SelectedItemsBorderThickness,
+            (o, v) => o.SelectedItemsBorderThickness = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, Thickness> SelectedItemsMarginProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, Thickness>(nameof(SelectedItemsMargin), o => o.SelectedItemsMargin, (o, v) => o.SelectedItemsMargin = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, Thickness>(nameof(SelectedItemsMargin),
+            o => o.SelectedItemsMargin, (o, v) => o.SelectedItemsMargin = v);
 
-    public static readonly StyledProperty<IEnumerable?> SelectedItemsProperty = AvaloniaProperty.Register<CheckComboBoxEx, IEnumerable?>(nameof(SelectedItems));
+    public static readonly DirectProperty<CheckComboBoxEx, IList> SelectedItemsProperty =
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IList>(nameof(SelectedItems), o => o.SelectedItems,
+            (o, v) => o.SelectedItems = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, IDataTemplate?> SelectedItemsTemplateProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IDataTemplate?>(nameof(SelectedItemsTemplate), o => o.SelectedItemsTemplate, (o, v) => o.SelectedItemsTemplate = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, IDataTemplate?>(nameof(SelectedItemsTemplate),
+            o => o.SelectedItemsTemplate, (o, v) => o.SelectedItemsTemplate = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, SelectionMode> SelectionModeProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, SelectionMode>(nameof(SelectionMode), o => o.SelectionMode, (o, v) => o.SelectionMode = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, SelectionMode>(nameof(SelectionMode), o => o.SelectionMode,
+            (o, v) => o.SelectionMode = v);
 
-    public static readonly StyledProperty<bool> ShowClearButtonProperty = AvaloniaProperty.Register<CheckComboBoxEx, bool>(nameof(ShowClearButton));
+    public static readonly StyledProperty<bool> ShowClearButtonProperty =
+        AvaloniaProperty.Register<CheckComboBoxEx, bool>(nameof(ShowClearButton));
 
     public static readonly DirectProperty<CheckComboBoxEx, MultiSelectDisplayTypeEnum> SummaryDisplayTypeProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, MultiSelectDisplayTypeEnum>(nameof(SummaryDisplayType), o => o.SummaryDisplayType, (o, v) => o.SummaryDisplayType = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, MultiSelectDisplayTypeEnum>(nameof(SummaryDisplayType),
+            o => o.SummaryDisplayType, (o, v) => o.SummaryDisplayType = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, string?> SummaryTextFormatStringProperty =
-        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, string?>(nameof(SummaryTextFormatString), o => o.SummaryTextFormatString, (o, v) => o.SummaryTextFormatString = v);
+        AvaloniaProperty.RegisterDirect<CheckComboBoxEx, string?>(nameof(SummaryTextFormatString),
+            o => o.SummaryTextFormatString, (o, v) => o.SummaryTextFormatString = v);
 
     public static readonly DirectProperty<CheckComboBoxEx, VerticalAlignment> VerticalContentAlignmentProperty =
         AvaloniaProperty.RegisterDirect<CheckComboBoxEx, VerticalAlignment>(nameof(VerticalContentAlignment),
-                                                                            o => o.VerticalContentAlignment,
-                                                                            (o, v) => o.VerticalContentAlignment = v);
+            o => o.VerticalContentAlignment,
+            (o, v) => o.VerticalContentAlignment = v);
 
     #endregion
 
-    #region Fields
+    #region Static Internal
+
+    internal const string _pcDropdownOpen = ":dropdownopen";
+    internal const string _pcPressed = ":pressed";
+
+    #endregion
+
+    #region Static Private
 
     private const string _comboDrop = "M1939 486 L2029 576 L1024 1581 L19 576 L109 486 L1024 1401 L1939 486 Z";
 
@@ -130,14 +159,15 @@ public class CheckComboBoxEx : TemplatedControl
 
     private const string _glassRight =
         "m 836.5,1.4041 c 169.2,13.5 317,112.6 392.4,263.2 37.8,75.7 55.7,162.9 50.1,244.1 -6,85.9 -32.3,164.6 -78.5,234.7 -105.8,160.4 -297.6,241.9 -487,207 -28.7,-5.3 -60.3,-14.4 -88,-25.2 -16.5,-6.4 -53.7,-24.5 -68.4,-33.3 l -10.4,-6.2 -197.1,197.1 -197.1,197.1 -76.3,-76.2 -76.2,-76.3 197.1,-197.1 197.1,-197.1 -6.2,-10.4 c -8.8,-14.7 -26.9,-51.9 -33.3,-68.4 -48.8,-125.1 -43.5,-263.9 14.7,-384 46.3,-95.6 121.6,-172 216.3,-219.4 77.9,-38.9 165.9,-56.3 250.8,-49.6 z m -76,161 c -108.3,14.6 -198.7,79.2 -246.5,176 -15.8,31.9 -25.4,63.7 -30.7,101.5 -2.4,17.6 -2.4,61.4 0,79 11,78.2 45,143.8 101.7,196.2 48.2,44.5 107.4,71.9 176,81.5 17.6,2.4 61.4,2.4 79,0 37.8,-5.3 69.6,-14.9 101.5,-30.7 106.8,-52.7 174.8,-158.6 178.2,-277.5 2.6,-92.1 -34,-179.6 -101.3,-242.6 -52.1,-48.7 -117.6,-77.8 -191.2,-84.9 -13.1,-1.3 -52.9,-0.4 -66.7,1.5 z";
+
     private const string _summarytextFormat = "{0} items selected";
 
-    internal const string _pcDropdownOpen = ":dropdownopen";
-    internal const string _pcPressed = ":pressed";
+    #endregion
+
+    #region Private fields
 
     private readonly ObservableCollection<CheckComboBoxItem> _checkItems = [];
 
-    private readonly ObservableCollection<object?> _selectedItemsCollection;
     private Border? _borderBackground;
     private ComboClearButton? _clearButton;
 
@@ -148,6 +178,7 @@ public class CheckComboBoxEx : TemplatedControl
     private PathIcon? _dropIcon;
 
     private ListBox? _dropListbox;
+    private bool _inSelectedItemsChange;
 
     private IDataTemplate? _itemTemplate;
 
@@ -160,6 +191,8 @@ public class CheckComboBoxEx : TemplatedControl
     private IBrush? _selectedItemBorderBrush;
 
     private CornerRadius _selectedItemCornerRadius = new(5);
+
+    private IList _selectedItems;
 
     private Thickness _selectedItemsBorderThickness;
 
@@ -182,10 +215,12 @@ public class CheckComboBoxEx : TemplatedControl
     {
         PlaceholderForeground = Brushes.LightGray;
         PlaceholderFontStyle = FontStyle.Italic;
-        _selectedItemsCollection = [];
+        var list = new ObservableCollection<object>();
+        list.CollectionChanged += SelectedItemsCollectionChanged;
+        _selectedItems = list;
     }
 
-    #region Properties
+    #region Public properties
 
     /// <summary>
     ///     Gets or sets the background brush for the clear button.
@@ -369,7 +404,7 @@ public class CheckComboBoxEx : TemplatedControl
     /// <summary>
     ///     Gets the number of selected items.
     /// </summary>
-    public int SelectedCount => _selectedItemsCollection.Count;
+    public int SelectedCount => _selectedItems.Count;
 
     public IBrush? SelectedItemBackground
     {
@@ -422,10 +457,27 @@ public class CheckComboBoxEx : TemplatedControl
         }
     }
 
-    public IEnumerable? SelectedItems
+    public IList SelectedItems
     {
-        get => GetValue(SelectedItemsProperty);
-        set => SetValue(SelectedItemsProperty, value);
+        get => _selectedItems;
+        set
+        {
+            if (!ReferenceEquals(_selectedItems, value))
+            {
+                if (_selectedItems is INotifyCollectionChanged col)
+                {
+                    col.CollectionChanged -= SelectedItemsCollectionChanged;
+                }
+
+                SetAndRaise(SelectedItemsProperty, ref _selectedItems, value);
+
+                ReloadSelectedItemsList();
+                if (_selectedItems is INotifyCollectionChanged col1)
+                {
+                    col1.CollectionChanged += SelectedItemsCollectionChanged;
+                }
+            }
+        }
     }
 
     public Thickness SelectedItemsBorderThickness
@@ -549,24 +601,56 @@ public class CheckComboBoxEx : TemplatedControl
     /// </summary>
     public event EventHandler? SelectionChanged;
 
+    private void CheckComboBoxExPopupClosed(object? sender, EventArgs e)
+    {
+        InternalSetSelectedItems();
+    }
+
+    private void CheckComboBoxExPopupOpened(object? sender, EventArgs e)
+    {
+        //ensure SelectedItemsCollection is in sync with items that are checked
+        foreach (var item in _checkItems)
+        {
+            item.IsSelected = _selectedItems.Cast<object>().Contains(item.ItemData);
+        }
+    }
+
+    private void OnItemsSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        UpdateCheckItems();
+        InternalClearSelectedItems();
+    }
+
+    private void OnItemsSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        UpdateCheckItems();
+        InternalClearSelectedItems();
+    }
+
+    private void SelectedItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (!_inSelectedItemsChange)
+        {
+            _inSelectedItemsChange = true;
+            try
+            {
+                // Handle the collection change event
+                ReloadSelectedItemsList();
+            }
+            finally
+            {
+                _inSelectedItemsChange = false;
+            }
+        }
+    }
+
     #endregion
 
     #region Public Methods
 
     public IList GetSelectedItems()
     {
-        return _selectedItemsCollection.ToList();
-    }
-
-    public void SetSelectedItems(IEnumerable selectedItems)
-    {
-        var selectionHash = selectedItems.Cast<object>().ToHashSet();
-        foreach (var checkitem in _checkItems)
-        {
-            checkitem.IsSelected = checkitem.ItemData != null && selectionHash.Contains(checkitem.ItemData);
-        }
-
-        InternalSetSelectedItems();
+        return _selectedItems.Cast<object>().ToList();
     }
 
     public bool TryGetTotalCount(out int count)
@@ -581,11 +665,11 @@ public class CheckComboBoxEx : TemplatedControl
 
     protected virtual void DoClear()
     {
-        _selectedItemsCollection.Clear();
+        _selectedItems.Clear();
 
-        foreach (var checkitem in _checkItems)
+        foreach (var item in _checkItems)
         {
-            checkitem.IsSelected = false;
+            item.IsSelected = false;
         }
 
         SelectionChanged?.Invoke(this, EventArgs.Empty);
@@ -600,7 +684,7 @@ public class CheckComboBoxEx : TemplatedControl
         base.OnApplyTemplate(e);
 
         _selectedItemsControl = e.NameScope.Get<MultiSelectDisplay>("PART_ItemDisplay");
-        _selectedItemsControl.ItemsSource = _selectedItemsCollection;
+        _selectedItemsControl.ItemsSource = _selectedItems;
         _selectedItemsControl.PlaceholderForeground = PlaceholderForeground;
         _selectedItemsControl.PlaceholderFontStyle = PlaceholderFontStyle;
         _selectedItemsControl.PlaceholderText = PlaceholderText;
@@ -647,7 +731,8 @@ public class CheckComboBoxEx : TemplatedControl
             return;
         }
 
-        if ((e.Key == Key.F4 && !e.KeyModifiers.HasFlag(KeyModifiers.Alt)) || ((e.Key == Key.Down || e.Key == Key.Up) && e.KeyModifiers.HasFlag(KeyModifiers.Alt)))
+        if ((e.Key == Key.F4 && !e.KeyModifiers.HasFlag(KeyModifiers.Alt)) ||
+            ((e.Key == Key.Down || e.Key == Key.Up) && e.KeyModifiers.HasFlag(KeyModifiers.Alt)))
         {
             SetCurrentValue(IsDropDownOpenProperty, !IsDropDownOpen);
             e.Handled = true;
@@ -671,22 +756,17 @@ public class CheckComboBoxEx : TemplatedControl
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
-        _selectedItemsCollection.Clear();
-        if (SelectedItems != null)
+
+        var selectedList = _selectedItems.Cast<object>().ToHashSet();
+
+        foreach (var item in _checkItems)
         {
-            var selectedList = SelectedItems.Cast<object>().ToHashSet();
+            item.IsSelected = item.ItemData != null && selectedList.Contains(item.ItemData);
+        }
 
-            foreach (var checkeditem in _checkItems)
-            {
-                checkeditem.IsSelected = checkeditem.ItemData != null && selectedList.Contains(checkeditem.ItemData);
-            }
-
-            InternalSetSelectedItems();
-
-            if (_needToSetPropertiesOnLoad)
-            {
-                SetMultiDisplayProperties();
-            }
+        if (_needToSetPropertiesOnLoad)
+        {
+            SetMultiDisplayProperties();
         }
     }
 
@@ -823,20 +903,6 @@ public class CheckComboBoxEx : TemplatedControl
         _clearButton?.IsEnabled = SelectedCount > 0;
     }
 
-    private void CheckComboBoxExPopupClosed(object? sender, EventArgs e)
-    {
-        InternalSetSelectedItems();
-    }
-
-    private void CheckComboBoxExPopupOpened(object? sender, EventArgs e)
-    {
-        //ensure SelectedItemsCollection is in sync with items that are checked
-        foreach (var checkitem in _checkItems)
-        {
-            checkitem.IsSelected = _selectedItemsCollection.Contains(checkitem.ItemData);
-        }
-    }
-
     private void ClearCommandExecute()
     {
         DoClear();
@@ -859,8 +925,7 @@ public class CheckComboBoxEx : TemplatedControl
 
     private void InternalClearSelectedItems()
     {
-        _selectedItemsCollection.Clear();
-        (SelectedItems as IList)?.Clear();
+        _selectedItems.Clear();
         RaisePropertyChanged(SelectedCountProperty, 0, SelectedCount);
         CheckClearEnabled();
         SelectionChanged?.Invoke(this, EventArgs.Empty);
@@ -868,23 +933,37 @@ public class CheckComboBoxEx : TemplatedControl
 
     private void InternalSetSelectedItems()
     {
-        //set SelectedItemsCollection and hence the display text
-        _selectedItemsCollection.Clear();
-        foreach (var checkeditem in _checkItems)
+        //set SelectedItems and hence the display text
+        var removeList = _selectedItems.Cast<object>().ToHashSet();
+        var addList = new List<object>();
+
+        foreach (var item in _checkItems)
         {
-            if (checkeditem.IsSelected)
+            if (item.IsSelected && item.ItemData != null)
             {
-                _selectedItemsCollection.Add(checkeditem.ItemData);
+                if (!removeList.Remove(item.ItemData))
+                {
+                    addList.Add(item.ItemData);
+                }
             }
         }
 
-        if (SelectedItems is IList list)
+        _inSelectedItemsChange = true;
+        try
         {
-            list.Clear();
-            foreach (var selectedItem in _selectedItemsCollection)
+            foreach (var item in removeList)
             {
-                list.Add(selectedItem);
+                _selectedItems.Remove(item);
             }
+
+            foreach (var item in addList)
+            {
+                _selectedItems.Add(item);
+            }
+        }
+        finally
+        {
+            _inSelectedItemsChange = false;
         }
 
         RaisePropertyChanged(SelectedCountProperty, 0, SelectedCount);
@@ -895,32 +974,33 @@ public class CheckComboBoxEx : TemplatedControl
     private void MakeAndSetListBoxItemTemplate()
     {
         _dropListbox?.ItemTemplate = new FuncDataTemplate<CheckComboBoxItem?>((_, _) =>
+        {
+            var checkBox = new CheckBox
             {
-                var checkBox = new CheckBox { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch };
-                checkBox[!ToggleButton.IsCheckedProperty] = new Binding(nameof(CheckComboBoxItem.IsSelected)) { Mode = BindingMode.TwoWay };
-                var contentPresenter = new ContentControl
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    Margin = new Thickness(5, 2)
-                };
-                contentPresenter[!ContentPresenter.ContentProperty] = new Binding(nameof(CheckComboBoxItem.ItemData));
-                contentPresenter.ContentTemplate = GetEffectiveItemTemplate();
-                checkBox.Content = contentPresenter;
-                return checkBox;
-            });
+                VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+            checkBox[!ToggleButton.IsCheckedProperty] =
+                new Binding(nameof(CheckComboBoxItem.IsSelected)) { Mode = BindingMode.TwoWay };
+            var contentPresenter = new ContentControl
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                Margin = new Thickness(5, 2)
+            };
+            contentPresenter[!ContentPresenter.ContentProperty] = new Binding(nameof(CheckComboBoxItem.ItemData));
+            contentPresenter.ContentTemplate = GetEffectiveItemTemplate();
+            checkBox.Content = contentPresenter;
+            return checkBox;
+        });
     }
 
-    private void OnItemsSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private void ReloadSelectedItemsList()
     {
-        UpdateCheckItems();
-        InternalClearSelectedItems();
-    }
-
-    private void OnItemsSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        UpdateCheckItems();
-        InternalClearSelectedItems();
+            var selectionHash = _selectedItems.Cast<object>().ToHashSet();
+            foreach (var item in _checkItems)
+            {
+                item.IsSelected = item.ItemData != null && selectionHash.Contains(item.ItemData);
+            }
     }
 
     private void SetMultiDisplayProperties()
@@ -966,7 +1046,7 @@ public class CheckComboBoxEx : TemplatedControl
 /// </summary>
 internal class ValueIsZeroConverter : IValueConverter
 {
-    #region IValueConverter Members
+    #region Implementing IValueConverter
 
     /// <summary>
     ///     Converts an integer to a boolean indicating if it is zero.

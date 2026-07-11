@@ -375,7 +375,7 @@ public abstract class EditWithDropControlBase : TemplatedControl
         base.OnLoaded(e);
         if (DropGlyphPath != null && _dropButton != null)
         {
-            _dropIcon ??= _dropButton.GetTemplateChildren().OfType<PathIcon>().FirstOrDefault();
+            _dropIcon ??= _dropButton.GetTemplateDescendants().OfType<PathIcon>().FirstOrDefault();
             UpdateGlyph();
         }
     }

@@ -1,9 +1,12 @@
 ﻿// NumericTextBox.cs
-//  Andrew Baylis
-//  Created: 20/01/2024
+// Andrew Baylis
+// Created: 10/07/2026
 
 #region using
 
+using System.Globalization;
+using System.Reflection;
+using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -11,9 +14,6 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using System.Globalization;
-using System.Reflection;
-using System.Text;
 
 #endregion
 
@@ -24,31 +24,39 @@ namespace AJBAvalonia;
 /// </summary>
 public class NumericTextBox : TextBoxEx
 {
-    #region Avalonia Properties
+    #region Static Public
 
     public static readonly DirectProperty<NumericTextBox, bool> CheckMaxMinValuesProperty =
-        AvaloniaProperty.RegisterDirect<NumericTextBox, bool>(nameof(CheckMaxMinValues), o => o.CheckMaxMinValues, (o, v) => o.CheckMaxMinValues = v);
+        AvaloniaProperty.RegisterDirect<NumericTextBox, bool>(nameof(CheckMaxMinValues), o => o.CheckMaxMinValues,
+            (o, v) => o.CheckMaxMinValues = v);
 
-    public static readonly StyledProperty<bool> ClearToNullProperty = AvaloniaProperty.Register<NumericTextBox, bool>(nameof(ClearToNull));
+    public static readonly StyledProperty<bool> ClearToNullProperty =
+        AvaloniaProperty.Register<NumericTextBox, bool>(nameof(ClearToNull));
 
-    public static readonly StyledProperty<object?> MaximumValueProperty = AvaloniaProperty.Register<NumericTextBox, object?>(nameof(MaximumValue));
+    public static readonly StyledProperty<object?> MaximumValueProperty =
+        AvaloniaProperty.Register<NumericTextBox, object?>(nameof(MaximumValue));
 
-    public static readonly StyledProperty<object?> MinimumValueProperty = AvaloniaProperty.Register<NumericTextBox, object?>(nameof(MinimumValue));
+    public static readonly StyledProperty<object?> MinimumValueProperty =
+        AvaloniaProperty.Register<NumericTextBox, object?>(nameof(MinimumValue));
 
-    public static readonly StyledProperty<string?> NumberDisplayFormatProperty = AvaloniaProperty.Register<NumericTextBox, string?>(nameof(NumberDisplayFormat));
+    public static readonly StyledProperty<string?> NumberDisplayFormatProperty =
+        AvaloniaProperty.Register<NumericTextBox, string?>(nameof(NumberDisplayFormat));
 
     public static readonly DirectProperty<NumericTextBox, TextEntryEnum> NumberEntryTypeProperty =
-        AvaloniaProperty.RegisterDirect<NumericTextBox, TextEntryEnum>(nameof(NumberEntryType), o => o.NumberEntryType, (o, v) => o.NumberEntryType = v);
+        AvaloniaProperty.RegisterDirect<NumericTextBox, TextEntryEnum>(nameof(NumberEntryType), o => o.NumberEntryType,
+            (o, v) => o.NumberEntryType = v);
 
     public static readonly DirectProperty<NumericTextBox, bool> NumericValueImmediateUpdateProperty =
-        AvaloniaProperty.RegisterDirect<NumericTextBox, bool>(nameof(NumericValueImmediateUpdate), o => o.NumericValueImmediateUpdate, (o, v) => o.NumericValueImmediateUpdate = v);
+        AvaloniaProperty.RegisterDirect<NumericTextBox, bool>(nameof(NumericValueImmediateUpdate),
+            o => o.NumericValueImmediateUpdate, (o, v) => o.NumericValueImmediateUpdate = v);
 
     public static readonly StyledProperty<object?> NumericValueProperty =
-        AvaloniaProperty.Register<NumericTextBox, object?>(nameof(NumericValue), defaultBindingMode: BindingMode.TwoWay, enableDataValidation: true);
+        AvaloniaProperty.Register<NumericTextBox, object?>(nameof(NumericValue), defaultBindingMode: BindingMode.TwoWay,
+            enableDataValidation: true);
 
     #endregion
 
-    #region Fields
+    #region Private fields
 
     private readonly StringBuilder _inputBuffer = new(100);
 
@@ -65,9 +73,12 @@ public class NumericTextBox : TextBoxEx
     //private readonly Regex positiveCurrency = new(@"^\p{Sc}?(\d*(\.\d*)?)$", RegexOptions.Compiled);
     //private readonly Regex positiveDouble = new(@"^(\d*(\.\d*)?)$", RegexOptions.Compiled);
     //private readonly Regex positiveInteger = new(@"^\d*$", RegexOptions.Compiled);
-    //private readonly Regex time12hrClock = new(@"^(?<hour>1[0-2]|0?[0-9])(?::(?<minute>[0-5]?[0-9])?(?::(?<seconds>[0-5]?[0-9])?)?)?\s*(?<ampm>[AaPp][Mm]?)?$$",
+    //private readonly Regex time12hrClock =
+    // new(@"^(?<hour>1[0-2]|0?[0-9])(?::(?<minute>[0-5]?[0-9])?(?::(?<seconds>[0-5]?[0-9])?)?)?\s*(?<ampm>[AaPp][Mm]?)?$$",
     //                                           RegexOptions.Compiled);
-    //private readonly Regex time24hrClock = new(@"^(?<hour>2[0-3]|1[0-2]|0?[0-9])(?::(?<minute>[0-5]?[0-9])?(?::(?<seconds>[0-5]?[0-9])?)?)?$", RegexOptions.Compiled);
+    //private readonly Regex time24hrClock =
+    // new(@"^(?<hour>2[0-3]|1[0-2]|0?[0-9])(?::(?<minute>[0-5]?[0-9])?(?::(?<seconds>[0-5]?[0-9])?)?)?$",
+    // RegexOptions.Compiled);
 
     private bool _inChangeNumericValue;
 
@@ -80,7 +91,7 @@ public class NumericTextBox : TextBoxEx
         AffectsRender<NumericTextBox>(CaretIndexProperty);
     }
 
-    #region Properties
+    #region Public properties
 
     /// <summary>
     ///     Gets or sets whether the control enforces maximum and minimum value checks.
@@ -154,6 +165,10 @@ public class NumericTextBox : TextBoxEx
         set => SetAndRaise(NumericValueImmediateUpdateProperty, ref field, value);
     } = true;
 
+    #endregion
+
+    #region Protected properties
+
     /// <summary>
     ///     Gets the style key used for theming.
     /// </summary>
@@ -178,6 +193,7 @@ public class NumericTextBox : TextBoxEx
         {
             SetTextFromNumericValue(true);
         }
+
         base.OnGotFocus(e);
     }
 
@@ -348,81 +364,91 @@ public class NumericTextBox : TextBoxEx
 
                 return 0d;
             case TextEntryEnum.Time12Hr:
+            {
+                var time = TimeSpan.Zero;
+                if (!string.IsNullOrEmpty(Text))
                 {
-                    var time = TimeSpan.Zero;
-                    if (!string.IsNullOrEmpty(Text))
+                    var m = RegExExtensions.time12hrClock.Match(Text);
+                    var h = m.Groups["hour"].Value;
+                    var min = m.Groups["minute"].Value;
+                    var s = m.Groups["seconds"].Value;
+                    var a = m.Groups["ampm"].Value;
+                    if (!int.TryParse(h, out var hour))
                     {
-                        var m = RegExExtensions.time12hrClock.Match(Text);
-                        var h = m.Groups["hour"].Value;
-                        var min = m.Groups["minute"].Value;
-                        var s = m.Groups["seconds"].Value;
-                        var a = m.Groups["ampm"].Value;
-                        if (!int.TryParse(h, out var hour))
-                        {
-                            hour = 0;
-                        }
-
-                        if (!int.TryParse(min, out var minute))
-                        {
-                            minute = 0;
-                        }
-
-                        if (!int.TryParse(s, out var second))
-                        {
-                            second = 0;
-                        }
-
-                        if (a.Length > 0 && a.ToUpper()[0] == 'P')
-                        {
-                            hour += 12;
-                        }
-
-                        time = new TimeSpan(hour, minute, second);
+                        hour = 0;
                     }
 
-                    if (GetNumericValueBoundType() == typeof(DateTime))
+                    if (!int.TryParse(min, out var minute))
                     {
-                        return DateTime.MinValue.Add(time);
+                        minute = 0;
                     }
 
-                    return time;
+                    if (!int.TryParse(s, out var second))
+                    {
+                        second = 0;
+                    }
+
+                    if (a.Length > 0 && a.ToUpper()[0] == 'P')
+                    {
+                        hour += 12;
+                    }
+
+                    time = new TimeSpan(hour, minute, second);
                 }
+
+                if (GetNumericValueUnderlyingType() == typeof(DateTime))
+                {
+                    return DateTime.MinValue.Add(time);
+                }
+
+                if (GetNumericValueUnderlyingType() == typeof(TimeOnly))
+                {
+                    return TimeOnly.FromTimeSpan(time);
+                }
+
+                return time;
+            }
 
             case TextEntryEnum.Time24Hr:
+            {
+                var time = TimeSpan.Zero;
+                if (!string.IsNullOrEmpty(Text))
                 {
-                    var time = TimeSpan.Zero;
-                    if (!string.IsNullOrEmpty(Text))
+                    var m = RegExExtensions.time24hrClock.Match(Text);
+                    var h = m.Groups["hour"].Value;
+                    var min = m.Groups["minute"].Value;
+                    var s = m.Groups["seconds"].Value;
+
+                    if (!int.TryParse(h, out var hour))
                     {
-                        var m = RegExExtensions.time24hrClock.Match(Text);
-                        var h = m.Groups["hour"].Value;
-                        var min = m.Groups["minute"].Value;
-                        var s = m.Groups["seconds"].Value;
-
-                        if (!int.TryParse(h, out var hour))
-                        {
-                            hour = 0;
-                        }
-
-                        if (!int.TryParse(min, out var minute))
-                        {
-                            minute = 0;
-                        }
-
-                        if (!int.TryParse(s, out var second))
-                        {
-                            second = 0;
-                        }
-
-                        time = new TimeSpan(hour, minute, second);
+                        hour = 0;
                     }
 
-                    if (GetNumericValueBoundType() == typeof(DateTime))
+                    if (!int.TryParse(min, out var minute))
                     {
-                        return DateTime.MinValue.Add(time);
+                        minute = 0;
                     }
 
-                    return time;
+                    if (!int.TryParse(s, out var second))
+                    {
+                        second = 0;
+                    }
+
+                    time = new TimeSpan(hour, minute, second);
                 }
+
+                if (GetNumericValueUnderlyingType() == typeof(DateTime))
+                {
+                    return DateTime.MinValue.Add(time);
+                }
+
+                if (GetNumericValueUnderlyingType() == typeof(TimeOnly))
+                {
+                    return TimeOnly.FromTimeSpan(time);
+                }
+
+                return time;
+            }
 
             case TextEntryEnum.AnyText:
                 return Text;
@@ -469,7 +495,8 @@ public class NumericTextBox : TextBoxEx
         var b = BindingOperations.GetBindingExpressionBase(this, NumericValueProperty);
         if (b != null)
         {
-            var sourcetypeProp = b.GetType().GetProperty("SourceType", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var sourcetypeProp = b.GetType().GetProperty("SourceType",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (sourcetypeProp != null)
             {
                 return sourcetypeProp.GetValue(b) as Type;
@@ -504,64 +531,66 @@ public class NumericTextBox : TextBoxEx
         {
             case TextEntryEnum.Time12Hr:
             case TextEntryEnum.Time24Hr:
+            {
+                if (value is TimeSpan ts)
                 {
-                    if (value is TimeSpan ts)
+                    if (MaximumValue is TimeSpan max && ts > max)
                     {
-                        if (MaximumValue is TimeSpan max && ts > max)
-                        {
-                            return max;
-                        }
-
-                        if (MinimumValue is TimeSpan min && ts < min)
-                        {
-                            return min;
-                        }
+                        return max;
                     }
-                    else if (value is DateTime dt)
-                    {
-                        if (MaximumValue is DateTime max && dt > max)
-                        {
-                            return max;
-                        }
 
-                        if (MinimumValue is DateTime min && dt < min)
-                        {
-                            return min;
-                        }
+                    if (MinimumValue is TimeSpan min && ts < min)
+                    {
+                        return min;
                     }
                 }
+                else if (value is DateTime dt)
+                {
+                    if (MaximumValue is DateTime max && dt > max)
+                    {
+                        return max;
+                    }
+
+                    if (MinimumValue is DateTime min && dt < min)
+                    {
+                        return min;
+                    }
+                }
+            }
                 break;
             case TextEntryEnum.AnyText:
+            {
+                if (MaximumValue is string maxs && string.CompareOrdinal(value?.ToString(), maxs) > 0)
                 {
-                    if (MaximumValue is string maxs && string.CompareOrdinal(value?.ToString(), maxs) > 0)
-                    {
-                        return maxs;
-                    }
-
-                    if (MinimumValue is string mins && string.CompareOrdinal(value?.ToString(), mins) < 0)
-                    {
-                        return mins;
-                    }
+                    return maxs;
                 }
+
+                if (MinimumValue is string mins && string.CompareOrdinal(value?.ToString(), mins) < 0)
+                {
+                    return mins;
+                }
+            }
                 break;
             default:
+            {
+                var d = string.Format(CultureInfo.CurrentCulture, "{0:G}", value);
+                if (double.TryParse(d, NumberStyles.Any, CultureInfo.CurrentCulture, out var result))
                 {
-                    var d = string.Format(CultureInfo.CurrentCulture, "{0:G}", value);
-                    if (double.TryParse(d, NumberStyles.Any, CultureInfo.CurrentCulture, out var result))
+                    var maxs = string.Format(CultureInfo.CurrentCulture, "{0:G}", MaximumValue);
+                    if (double.TryParse(maxs, NumberStyles.Any, CultureInfo.CurrentCulture, out var max) &&
+                        result > max)
                     {
-                        var maxs = string.Format(CultureInfo.CurrentCulture, "{0:G}", MaximumValue);
-                        if (double.TryParse(maxs, NumberStyles.Any, CultureInfo.CurrentCulture, out var max) && result > max)
-                        {
-                            return max;
-                        }
+                        return max;
+                    }
 
-                        var mins = string.Format(CultureInfo.CurrentCulture, "{0:G}", MinimumValue);
-                        if (double.TryParse(mins, NumberStyles.Any, CultureInfo.CurrentCulture, out var min) && result < min)
-                        {
-                            return min;
-                        }
+                    var mins = string.Format(CultureInfo.CurrentCulture, "{0:G}", MinimumValue);
+                    if (double.TryParse(mins, NumberStyles.Any, CultureInfo.CurrentCulture, out var min) &&
+                        result < min)
+                    {
+                        return min;
                     }
                 }
+            }
                 break;
         }
 
@@ -686,7 +715,8 @@ public class NumericTextBox : TextBoxEx
 
     //    public int GetAffinityForObjects(Type fromType, Type toType)
     //    {
-    //        if ((fromType == typeof(decimal) && toType == typeof(double)) || (fromType == typeof(double) && toType == typeof(decimal)))
+    //        if ((fromType == typeof(decimal) && toType == typeof(double)) || (fromType == typeof(double) && toType ==
+    // typeof(decimal)))
     //        {
     //            return 100;
     //        }

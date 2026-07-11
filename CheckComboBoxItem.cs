@@ -1,30 +1,32 @@
 ﻿// CheckComboBoxItem.cs
-//  Andrew Baylis
-//  Created: 26/11/2025
+// Andrew Baylis
+// Created: 11/07/2026
 
 #region using
 
 using Avalonia;
+using Avalonia.Data;
 
 #endregion
 
 namespace AJBAvalonia;
 
 /// <summary>
-/// Represents an item in the check combo box, wrapping the original item data and selection state.
+///     Represents an item in the check combo box, wrapping the original item data and selection state.
 /// </summary>
 public class CheckComboBoxItem(object? itemData) : AvaloniaObject
 {
-    #region Avalonia Properties
+    #region Static Public
 
-    public static readonly StyledProperty<bool> IsSelectedProperty = AvaloniaProperty.Register<CheckComboBoxItem, bool>(nameof(IsSelected));
+    public static readonly StyledProperty<bool> IsSelectedProperty =
+        AvaloniaProperty.Register<CheckComboBoxItem, bool>(nameof(IsSelected), defaultBindingMode: BindingMode.TwoWay);
 
     #endregion
 
-    #region Properties
+    #region Public properties
 
     /// <summary>
-    /// Gets or sets a value indicating whether the item is selected.
+    ///     Gets or sets a value indicating whether the item is selected.
     /// </summary>
     public bool IsSelected
     {
@@ -33,7 +35,7 @@ public class CheckComboBoxItem(object? itemData) : AvaloniaObject
     }
 
     /// <summary>
-    /// Gets the wrapped item data for this check item.
+    ///     Gets the wrapped item data for this check item.
     /// </summary>
     public object? ItemData { get; } = itemData;
 

@@ -1,6 +1,6 @@
 ﻿// SideBySideListSelect.cs
 // Andrew Baylis
-// Created: 18/06/2026
+// Created: 09/07/2026
 
 #region using
 
@@ -44,8 +44,8 @@ public class SideBySideListSelect : TemplatedControl
     public static readonly StyledProperty<FontWeight> HeaderFontWeightProperty =
         AvaloniaProperty.Register<SideBySideListSelect, FontWeight>(nameof(HeaderFontWeight));
 
-    public static readonly StyledProperty<Thickness?> HeaderMarginProperty =
-        AvaloniaProperty.Register<SideBySideListSelect, Thickness?>(nameof(HeaderMargin));
+    public static readonly StyledProperty<Thickness> HeaderMarginProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, Thickness>(nameof(HeaderMargin));
 
     public static readonly DirectProperty<SideBySideListSelect, bool> IsLeftToRightProperty =
         AvaloniaProperty.RegisterDirect<SideBySideListSelect, bool>(nameof(IsLeftToRight), o => o.IsLeftToRight,
@@ -70,8 +70,12 @@ public class SideBySideListSelect : TemplatedControl
     public static readonly StyledProperty<IBrush?> ListBoxBorderBrushProperty =
         AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(ListBoxBorderBrush));
 
-    public static readonly StyledProperty<Thickness?> ListBoxBorderThicknessProperty =
-        AvaloniaProperty.Register<SideBySideListSelect, Thickness?>(nameof(ListBoxBorderThickness));
+    public static readonly StyledProperty<Thickness> ListBoxBorderThicknessProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, Thickness>(nameof(ListBoxBorderThickness));
+
+    public static readonly DirectProperty<SideBySideListSelect, Func<object, bool>?> ListFilterProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, Func<object, bool>?>(nameof(ListFilter),
+            o => o.ListFilter, (o, v) => o.ListFilter = v);
 
     public static readonly StyledProperty<SelectionMode> ListSelectionModeProperty =
         AvaloniaProperty.Register<SideBySideListSelect, SelectionMode>(nameof(ListSelectionMode));
@@ -88,6 +92,10 @@ public class SideBySideListSelect : TemplatedControl
     public static readonly DirectProperty<SideBySideListSelect, IEnumerable?> SelectedItemsProperty =
         AvaloniaProperty.RegisterDirect<SideBySideListSelect, IEnumerable?>(nameof(SelectedItems), o => o.SelectedItems,
             (o, v) => o.SelectedItems = v, enableDataValidation: true);
+
+    public static readonly DirectProperty<SideBySideListSelect, BindingBase?> SortKeyBindingProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, BindingBase?>(nameof(SortKeyBinding),
+            o => o.SortKeyBinding, (o, v) => o.SortKeyBinding = v);
 
     #endregion
 
@@ -110,7 +118,11 @@ public class SideBySideListSelect : TemplatedControl
 
     private IEnumerable? _itemsSource;
 
+    private Func<object, bool>? _listFilter;
+
     private IEnumerable? _selectedItems;
+
+    private BindingBase? _sortKeyBinding;
 
     #endregion
 
@@ -180,7 +192,7 @@ public class SideBySideListSelect : TemplatedControl
     /// <summary>
     ///     Gets or sets the header margin.
     /// </summary>
-    public Thickness? HeaderMargin
+    public Thickness HeaderMargin
     {
         get => GetValue(HeaderMarginProperty);
         set => SetValue(HeaderMarginProperty, value);
@@ -262,10 +274,23 @@ public class SideBySideListSelect : TemplatedControl
     /// <summary>
     ///     Gets or sets the border thickness for the list boxes.
     /// </summary>
-    public Thickness? ListBoxBorderThickness
+    public Thickness ListBoxBorderThickness
     {
         get => GetValue(ListBoxBorderThicknessProperty);
         set => SetValue(ListBoxBorderThicknessProperty, value);
+    }
+
+    public Func<object, bool>? ListFilter
+    {
+        get => _listFilter;
+        set
+        {
+            if (SetAndRaise(ListFilterProperty, ref _listFilter, value))
+            {
+                SetFilterLeftList(_listFilter);
+                SetFilterRightList(_listFilter);
+            }
+        }
     }
 
     /// <summary>
@@ -355,6 +380,31 @@ public class SideBySideListSelect : TemplatedControl
         }
     }
 
+    [AssignBinding]
+    [InheritDataTypeFromItems("ItemsSource", AncestorType = typeof(SideBySideListSelect))]
+    public BindingBase? SortKeyBinding
+    {
+        get => _sortKeyBinding;
+        set
+        {
+            if (SetAndRaise(SortKeyBindingProperty, ref _sortKeyBinding, value))
+            {
+                if (_sortKeyBinding is ReflectionBinding b)
+                {
+                    ListSortKey = b.Path;
+                }
+                else if (_sortKeyBinding is CompiledBinding cb)
+                {
+                    ListSortKey = cb.Path?.ToString();
+                }
+                else
+                {
+                    ListSortKey = null;
+                }
+            }
+        }
+    }
+
     #endregion
 
     #region Protected properties
@@ -380,6 +430,11 @@ public class SideBySideListSelect : TemplatedControl
     #endregion
 
     #region Events
+
+    /// <summary>
+    ///     Raised when the selected collection changes.
+    /// </summary>
+    public event CollectionChangeEventHandler? SelectedCollectionChanged;
 
     private void ItemsSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
@@ -412,11 +467,6 @@ public class SideBySideListSelect : TemplatedControl
         CheckCanAddRightLeft();
     }
 
-    /// <summary>
-    ///     Raised when the selected collection changes.
-    /// </summary>
-    public event CollectionChangeEventHandler? SelectedCollectionChanged;
-
     private void SelectedItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (!_inSelectedItemsChange)
@@ -436,7 +486,7 @@ public class SideBySideListSelect : TemplatedControl
 
     #endregion
 
-    #region Public members
+    #region Public Methods
 
     /// <summary>
     ///     Gets the selected items cast to the requested type.
@@ -466,7 +516,7 @@ public class SideBySideListSelect : TemplatedControl
 
     #endregion
 
-    #region Protected members
+    #region Protected Methods
 
     protected void AddLeftToRightExecute()
     {
@@ -493,7 +543,7 @@ public class SideBySideListSelect : TemplatedControl
                 }
             }
 
-UpdateSelectedItems();
+            UpdateSelectedItems();
 
             if (SelectedCollectionChanged != null)
             {
@@ -571,20 +621,12 @@ UpdateSelectedItems();
             {
                 leftHeader.Classes.Clear();
                 leftHeader.Classes.AddRange(HeaderClasses);
-                if (HeaderMargin != null)
-                {
-                    leftHeader.Margin = HeaderMargin.Value;
-                }
             }
 
             if (rightHeader != null)
             {
                 rightHeader.Classes.Clear();
                 rightHeader.Classes.AddRange(HeaderClasses);
-                if (HeaderMargin != null)
-                {
-                    rightHeader.Margin = HeaderMargin.Value;
-                }
             }
         }
 
@@ -626,7 +668,7 @@ UpdateSelectedItems();
 
     #endregion
 
-    #region Internal members
+    #region Internal Methods
 
     internal void AddAllLeftToRightExecute()
     {
@@ -678,7 +720,7 @@ UpdateSelectedItems();
         {
             //right is source list, left is selected list
             LeftItems.AddRange(moveList);
-            if(!AllowCopiesInSelected)
+            if (!AllowCopiesInSelected)
             {
                 RightItems.Clear();
             }
@@ -695,7 +737,7 @@ UpdateSelectedItems();
 
     #endregion
 
-    #region Private members
+    #region Private Methods
 
     private void CheckCanAddLeftRight()
     {
@@ -883,7 +925,7 @@ UpdateSelectedItems();
 
         private readonly List<T> _items = new();
 
-private bool _blockNotifications;
+        private bool _blockNotifications;
         private Func<object, bool>? _filter;
         private IComparer<T>? _sortComparer;
         private string? _sortKey;
@@ -894,7 +936,7 @@ private bool _blockNotifications;
 
         #region Public properties
 
-public int Count => _items.Count;
+        public int Count => _items.Count;
 
         public int FilteredCount => _items.Count(item => item != null && (_filter == null || _filter(item)));
 
@@ -964,7 +1006,7 @@ public int Count => _items.Count;
 
         #endregion
 
-        #region Public members
+        #region Public Methods
 
         /// <summary>
         ///     Adds a range of items to the collection.
@@ -974,7 +1016,7 @@ public int Count => _items.Count;
             BlockNotifications();
             try
             {
-_items.AddRange(items);
+                _items.AddRange(items);
                 Sort();
             }
             finally
@@ -1071,7 +1113,7 @@ _items.AddRange(items);
 
         #endregion
 
-        #region Protected members
+        #region Protected Methods
 
         protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
@@ -1102,7 +1144,7 @@ _items.AddRange(items);
 
         #endregion
 
-        #region Private members
+        #region Private Methods
 
         private bool CheckSortProp()
         {
@@ -1166,11 +1208,11 @@ _items.AddRange(items);
 
         public void Add(T item)
         {
-                _items.Add(item);
-                Sort();
-                OnCountPropertyChanged();
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item,
-                    _items.Count - 1));
+            _items.Add(item);
+            Sort();
+            OnCountPropertyChanged();
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item,
+                _items.Count - 1));
         }
 
         public void Clear()
