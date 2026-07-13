@@ -1,12 +1,13 @@
 ﻿// SideBySideListSelect.cs
 // Andrew Baylis
-// Created: 09/07/2026
+// Created: 13/07/2026
 
 #region using
 
 using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Avalonia;
@@ -22,6 +23,24 @@ using Avalonia.Metadata;
 #endregion
 
 namespace AJBAvalonia;
+
+public class FilterItemsEventArgs : EventArgs
+{
+    public FilterItemsEventArgs(object? item)
+    {
+        Item = item;
+        IsSelected = true;
+    }
+
+    #region Public properties
+
+    public bool IsSelected { get; set; }
+    public object? Item { get; }
+
+    #endregion
+}
+
+public delegate bool FilterFuncDelegate(object? item);
 
 /// <summary>
 ///     Control that presents two lists side-by-side with commands to move items between them.
@@ -73,12 +92,12 @@ public class SideBySideListSelect : TemplatedControl
     public static readonly StyledProperty<Thickness> ListBoxBorderThicknessProperty =
         AvaloniaProperty.Register<SideBySideListSelect, Thickness>(nameof(ListBoxBorderThickness));
 
-    public static readonly DirectProperty<SideBySideListSelect, Func<object, bool>?> ListFilterProperty =
-        AvaloniaProperty.RegisterDirect<SideBySideListSelect, Func<object, bool>?>(nameof(ListFilter),
-            o => o.ListFilter, (o, v) => o.ListFilter = v);
-
     public static readonly StyledProperty<SelectionMode> ListSelectionModeProperty =
         AvaloniaProperty.Register<SideBySideListSelect, SelectionMode>(nameof(ListSelectionMode));
+
+    public static readonly DirectProperty<SideBySideListSelect, bool> RefreshFilterProperty =
+        AvaloniaProperty.RegisterDirect<SideBySideListSelect, bool>(nameof(RefreshFilter), o => o.RefreshFilter,
+            (o, v) => o.RefreshFilter = v);
 
     public static readonly StyledProperty<string?> RightHeaderTextProperty =
         AvaloniaProperty.Register<SideBySideListSelect, string?>(nameof(RightHeaderText));
@@ -112,13 +131,19 @@ public class SideBySideListSelect : TemplatedControl
 
     private string? _displayMemberPath;
 
+    // add fields
+    private ListBox? _dragSourceListBox;
+
+    private PointerPressedEventArgs? _dragStartArgs;
+    private Point _dragStartPoint;
+
     private bool _inSelectedItemsChange;
 
     private bool _isLeftToRight = true;
 
     private IEnumerable? _itemsSource;
 
-    private Func<object, bool>? _listFilter;
+    private bool _refreshFilter;
 
     private IEnumerable? _selectedItems;
 
@@ -201,7 +226,20 @@ public class SideBySideListSelect : TemplatedControl
     public bool IsLeftToRight
     {
         get => _isLeftToRight;
-        set => SetAndRaise(IsLeftToRightProperty, ref _isLeftToRight, value);
+        set
+        {
+            if (SetAndRaise(IsLeftToRightProperty, ref _isLeftToRight, value))
+            {
+                if (IsLeftToRight)
+                {
+                    LeftItems.SetFilter(InternalFilterItems);
+                }
+                else
+                {
+                    RightItems.SetFilter(InternalFilterItems);
+                }
+            }
+        }
     }
 
     public IEnumerable? ItemsSource
@@ -280,19 +318,6 @@ public class SideBySideListSelect : TemplatedControl
         set => SetValue(ListBoxBorderThicknessProperty, value);
     }
 
-    public Func<object, bool>? ListFilter
-    {
-        get => _listFilter;
-        set
-        {
-            if (SetAndRaise(ListFilterProperty, ref _listFilter, value))
-            {
-                SetFilterLeftList(_listFilter);
-                SetFilterRightList(_listFilter);
-            }
-        }
-    }
-
     /// <summary>
     ///     Gets or sets the selection mode used for the lists.
     /// </summary>
@@ -327,6 +352,18 @@ public class SideBySideListSelect : TemplatedControl
             LeftItems.SortKey = value;
             RightItems.SortKey = value;
             SortLists();
+        }
+    }
+
+    public bool RefreshFilter
+    {
+        get => _refreshFilter;
+        set
+        {
+            SetAndRaise(RefreshFilterProperty, ref _refreshFilter, value);
+            _refreshFilter = false;
+            LeftItems.RefreshFilter();
+            RightItems.RefreshFilter();
         }
     }
 
@@ -420,16 +457,18 @@ public class SideBySideListSelect : TemplatedControl
     /// <summary>
     ///     Gets the collection of left items.
     /// </summary>
-    internal SortedFilterListCollection<object> LeftItems { get; } = [];
+    internal FilteredObservableCollection<object> LeftItems { get; } = [];
 
     /// <summary>
     ///     Gets the collection of right items.
     /// </summary>
-    internal SortedFilterListCollection<object> RightItems { get; } = [];
+    internal FilteredObservableCollection<object> RightItems { get; } = [];
 
     #endregion
 
     #region Events
+
+    public event EventHandler<FilterItemsEventArgs>? FilterItemsEvent;
 
     /// <summary>
     ///     Raised when the selected collection changes.
@@ -452,6 +491,85 @@ public class SideBySideListSelect : TemplatedControl
     private void LeftListOnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         CheckCanAddLeftRight();
+    }
+
+    private void ListBoxOnDragOver(object? sender, DragEventArgs e)
+    {
+        if (sender is not ListBox target || ReferenceEquals(target, _dragSourceListBox))
+        {
+            e.DragEffects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
+
+        e.DragEffects = AllowCopiesInSelected ? DragDropEffects.Copy : DragDropEffects.Move;
+        e.Handled = true;
+    }
+
+    private void ListBoxOnDrop(object? sender, DragEventArgs e)
+    {
+        if (sender is not ListBox target || ReferenceEquals(target, _dragSourceListBox))
+        {
+            return;
+        }
+
+        if (ReferenceEquals(target, LeftListBox))
+        {
+            AddRightToLeftExecute();
+        }
+        else if (ReferenceEquals(target, RightListBox))
+        {
+            AddLeftToRightExecute();
+        }
+
+        e.Handled = true;
+    }
+
+    private async void ListBoxOnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (sender is not ListBox lb || lb.SelectedItems?.Count <= 0 || _dragStartArgs is null)
+        {
+            return;
+        }
+
+        if (!e.GetCurrentPoint(lb).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        var pos = e.GetPosition(lb);
+        if (Math.Abs(pos.X - _dragStartPoint.X) < 4 &&
+            Math.Abs(pos.Y - _dragStartPoint.Y) < 4)
+        {
+            return;
+        }
+
+        _dragSourceListBox = lb;
+
+        try
+        {
+            await DragDrop.DoDragDropAsync(_dragStartArgs, CreateDragData(), GetDragEffects(_dragStartArgs));
+        }
+        finally
+        {
+            _dragSourceListBox = null;
+            _dragStartArgs = null;
+        }
+    }
+
+    private void ListBoxOnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is ListBox lb)
+        {
+            _dragStartPoint = e.GetPosition(lb);
+            _dragStartArgs = e;
+        }
+    }
+
+    private void ListBoxOnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _dragStartArgs = null;
+        _dragSourceListBox = null;
     }
 
     private void RightListOnDoubleTapped(object? sender, TappedEventArgs e)
@@ -504,14 +622,24 @@ public class SideBySideListSelect : TemplatedControl
         return IsLeftToRight ? LeftItems.Cast<T>() : RightItems.Cast<T>();
     }
 
-    public void SetFilterLeftList(Func<object, bool>? filter)
+    public void SetLeftFilter(FilterFuncDelegate? filter)
     {
+        if (filter == null && IsLeftToRight)
+        {
+            filter = InternalFilterItems;
+        }
+
         LeftItems.SetFilter(filter);
     }
 
-    public void SetFilterRightList(Func<object, bool>? filter)
+    public void SetRightFilter(FilterFuncDelegate? filter)
     {
-        RightItems.SetFilter(filter);
+        if (filter == null && !IsLeftToRight)
+        {
+            filter = InternalFilterItems;
+        }
+
+        LeftItems.SetFilter(filter);
     }
 
     #endregion
@@ -611,10 +739,20 @@ public class SideBySideListSelect : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
+
+        DetachDragDrop(LeftListBox);
+        DetachDragDrop(RightListBox);
+
         var leftHeader = e.NameScope.Find<TextBlock>("LeftHeader");
         var rightHeader = e.NameScope.Find<TextBlock>("RightHeader");
         LeftListBox = e.NameScope.Find<ListBox>("LeftList");
         RightListBox = e.NameScope.Find<ListBox>("RightList");
+
+        // existing header/list setup...
+
+        AttachDragDrop(LeftListBox);
+        AttachDragDrop(RightListBox);
+
         if (HeaderClasses.Count != 0)
         {
             if (leftHeader != null)
@@ -657,6 +795,16 @@ public class SideBySideListSelect : TemplatedControl
         _btnMoveRight?.Click += (_, _) => AddLeftToRightExecute();
 
         InternalSetDisplayBinding();
+
+        if (IsLeftToRight)
+        {
+            LeftItems.SetFilter(InternalFilterItems);
+            LeftItems.CollectionChanged += (o, e) => Debug.WriteLine($"Collection changed: {e.Action}");
+        }
+        else
+        {
+            RightItems.SetFilter(InternalFilterItems);
+        }
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
@@ -739,6 +887,31 @@ public class SideBySideListSelect : TemplatedControl
 
     #region Private Methods
 
+    private void AttachDragDrop(ListBox? listBox)
+    {
+        if (listBox is null)
+        {
+            return;
+        }
+
+        DragDrop.SetAllowDrop(listBox, true);
+
+        listBox.AddHandler(PointerPressedEvent, ListBoxOnPointerPressed,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+
+        listBox.AddHandler(PointerMovedEvent, ListBoxOnPointerMoved,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+
+        listBox.AddHandler(PointerReleasedEvent, ListBoxOnPointerReleased,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+
+        listBox.AddHandler(DragDrop.DragOverEvent, ListBoxOnDragOver,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+
+        listBox.AddHandler(DragDrop.DropEvent, ListBoxOnDrop,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+    }
+
     private void CheckCanAddLeftRight()
     {
         if (_btnMoveAllRight != null && _btnMoveRight != null)
@@ -755,6 +928,59 @@ public class SideBySideListSelect : TemplatedControl
             _btnMoveLeft.IsEnabled = CanMoveRightLeft();
             _btnMoveAllLeft.IsEnabled = CanMoveAllRightLeft();
         }
+    }
+
+    private static IDataTransfer CreateDragData()
+    {
+        var item = new DataTransferItem();
+        item.SetText("SideBySideListSelectItem");
+
+        var data = new DataTransfer();
+        data.Add(item);
+        return data;
+    }
+
+    private void DetachDragDrop(ListBox? listBox)
+    {
+        if (listBox is null)
+        {
+            return;
+        }
+
+        DragDrop.SetAllowDrop(listBox, false);
+
+        listBox.RemoveHandler(PointerPressedEvent, ListBoxOnPointerPressed);
+        listBox.RemoveHandler(PointerMovedEvent, ListBoxOnPointerMoved);
+        listBox.RemoveHandler(PointerReleasedEvent, ListBoxOnPointerReleased);
+        listBox.RemoveHandler(DragDrop.DragOverEvent, ListBoxOnDragOver);
+        listBox.RemoveHandler(DragDrop.DropEvent, ListBoxOnDrop);
+    }
+
+    private static DragDropEffects GetDragEffects(PointerPressedEventArgs e)
+    {
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            return DragDropEffects.Copy;
+        }
+
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Alt))
+        {
+            return DragDropEffects.Link;
+        }
+
+        return DragDropEffects.Move;
+    }
+
+    private bool InternalFilterItems(object? item)
+    {
+        if (FilterItemsEvent != null)
+        {
+            var e = new FilterItemsEventArgs(item);
+            FilterItemsEvent.Invoke(this, e);
+            return e.IsSelected;
+        }
+
+        return true;
     }
 
     private void InternalSetDisplayBinding()
@@ -919,40 +1145,92 @@ public class SideBySideListSelect : TemplatedControl
     /// <summary>
     ///     A collection that supports sorting, bulk operations and notifies of changes.
     /// </summary>
-    public class SortedFilterListCollection<T> : ICollection<T>, IList, INotifyCollectionChanged, INotifyPropertyChanged
+    internal class FilteredObservableCollection<T> : IList, IList<T>, IEnumerable<T>, IEnumerable,
+        IReadOnlyList<T>, INotifyCollectionChanged, INotifyPropertyChanged
     {
         #region Private fields
 
-        private readonly List<T> _items = new();
+        private readonly List<T> _filteredList;
 
-        private bool _blockNotifications;
-        private Func<object, bool>? _filter;
+        private readonly List<T> _sourceList;
+
+        private int _blockCount;
+
+        private FilterFuncDelegate? _filter;
+
         private IComparer<T>? _sortComparer;
         private string? _sortKey;
-
         private PropertyInfo? _sortProp;
 
         #endregion
 
+        public FilteredObservableCollection()
+        {
+            _sourceList = [];
+            _filteredList = [];
+        }
+
+        public FilteredObservableCollection(IEnumerable<T> collection)
+        {
+            _sourceList = new List<T>(collection);
+            _filteredList = new List<T>(_sourceList);
+        }
+
+        public FilteredObservableCollection(int capacity)
+        {
+            if (capacity < 4)
+            {
+                capacity = 4;
+            }
+
+            _sourceList = new List<T>(capacity);
+            _filteredList = new List<T>(capacity);
+        }
+
         #region Public properties
 
-        public int Count => _items.Count;
+        public int Count => Filter == null ? _sourceList.Count : _filteredList.Count;
 
-        public int FilteredCount => _items.Count(item => item != null && (_filter == null || _filter(item)));
+        public FilterFuncDelegate? Filter
+        {
+            get => _filter;
+            set
+            {
+                _filter = value;
+                RebuildFilteredList();
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(Count));
+            }
+        }
 
         public bool IsFixedSize => false;
+
         public bool IsReadOnly => false;
+
         public bool IsSynchronized => false;
 
         public T this[int index]
         {
-            get => _items[index];
-            set => SetItem(index, value);
+            get => _filter == null ? _sourceList[index] : _filteredList[index];
+            set
+            {
+                if (_filter == null)
+                {
+                    _sourceList[index] = value;
+                }
+                else
+                {
+                    var oldItem = _filteredList[index];
+                    _filteredList[index] = value;
+                    var idx = _sourceList.IndexOf(oldItem);
+                    if (idx >= 0)
+                    {
+                        _sourceList[idx] = value;
+                    }
+                }
+            }
         }
 
-        /// <summary>
-        ///     Gets or sets the comparer used for sorting.
-        /// </summary>
         public IComparer<T>? SortComparer
         {
             get => _sortComparer;
@@ -961,12 +1239,11 @@ public class SideBySideListSelect : TemplatedControl
                 _sortProp = null;
                 _sortKey = null;
                 _sortComparer = value;
+                Sort();
+                OnPropertyChanged();
             }
         }
 
-        /// <summary>
-        ///     Gets or sets the key (property name) used to sort items.
-        /// </summary>
         public string? SortKey
         {
             get => _sortKey;
@@ -975,14 +1252,22 @@ public class SideBySideListSelect : TemplatedControl
                 _sortKey = value;
                 _sortProp = null; // Reset the property info to force re-evaluation
                 _sortComparer = null;
+                Sort();
+                OnPropertyChanged();
             }
         }
 
-        public object SyncRoot => this;
+        public object SyncRoot { get; } = new();
 
         #endregion
 
         #region Private properties
+
+        int ICollection.Count => Filter == null ? _sourceList.Count : _filteredList.Count;
+
+        int IReadOnlyCollection<T>.Count => Filter == null ? _sourceList.Count : _filteredList.Count;
+
+        bool ICollection<T>.IsReadOnly => false;
 
         object? IList.this[int index]
         {
@@ -1008,50 +1293,63 @@ public class SideBySideListSelect : TemplatedControl
 
         #region Public Methods
 
-        /// <summary>
-        ///     Adds a range of items to the collection.
-        /// </summary>
         public void AddRange(IEnumerable<T> items)
         {
-            BlockNotifications();
-            try
+            foreach (var item in items)
             {
-                _items.AddRange(items);
-                Sort();
+                InternalAddItem(item);
             }
-            finally
-            {
-                EnableNotifications();
-            }
+
+            NotifyListChanges();
         }
 
-        /// <summary>
-        ///     Blocks change notifications until <see cref="EnableNotifications" /> is called.
-        /// </summary>
         public void BlockNotifications()
         {
-            _blockNotifications = true;
+            _blockCount++;
         }
 
-        /// <summary>
-        ///     Re-enables notifications and raises a reset event.
-        /// </summary>
         public void EnableNotifications()
         {
-            _blockNotifications = false;
-            OnCollectionReset();
+            _blockCount--;
+            if (_blockCount <= 0)
+            {
+                _blockCount = 0;
+                NotifyListChanges();
+            }
+        }
+
+        public void RefreshFilter()
+        {
+            RebuildFilteredList();
+            NotifyListChanges();
         }
 
         public void RemoveRange(IEnumerable<T> items)
         {
+            foreach (var item in items)
+            {
+                _sourceList.Remove(item);
+            }
+
+            RebuildFilteredList();
+            NotifyListChanges();
+        }
+
+        public void RemoveRange(int index, int count)
+        {
+            _sourceList.RemoveRange(index, count);
+            RebuildFilteredList();
+            NotifyListChanges();
+        }
+
+        public void ReplaceWithRange(IEnumerable<T> items)
+        {
             BlockNotifications();
             try
             {
-                foreach (var item in items)
-                {
-                    _items.Remove(item);
-                }
-
+                _sourceList.Clear();
+                _sourceList.AddRange(items);
+                RebuildFilteredList();
                 Sort();
             }
             finally
@@ -1060,10 +1358,11 @@ public class SideBySideListSelect : TemplatedControl
             }
         }
 
-        public void SetFilter(Func<object, bool>? filter)
+        public void SetFilter(FilterFuncDelegate? filter)
         {
             _filter = filter;
-            OnCollectionReset();
+            RebuildFilteredList();
+            NotifyListChanges();
         }
 
         /// <summary>
@@ -1071,14 +1370,15 @@ public class SideBySideListSelect : TemplatedControl
         /// </summary>
         public void Sort()
         {
-            if (_items.Count > 1 && CheckSortProp() && _sortComparer != null)
+            if (_sourceList.Count > 1 && CheckSortProp() && _sortComparer != null)
             {
                 BlockNotifications();
                 try
                 {
                     // Perform sorting using the specified property
 
-                    _items.Sort(Comparer<T>.Create((x, y) => _sortComparer.Compare(x, y)));
+                    _sourceList.Sort(Comparer<T>.Create((x, y) => _sortComparer.Compare(x, y)));
+                    _filteredList.Sort(Comparer<T>.Create((x, y) => _sortComparer.Compare(x, y)));
                 }
                 finally
                 {
@@ -1092,7 +1392,7 @@ public class SideBySideListSelect : TemplatedControl
         /// </summary>
         public void Sort(string propertyName)
         {
-            if (_items.Count > 1)
+            if (_sourceList.Count > 1)
             {
                 SortKey = propertyName;
                 Sort();
@@ -1104,7 +1404,7 @@ public class SideBySideListSelect : TemplatedControl
         /// </summary>
         public void Sort(IComparer<T> comparer)
         {
-            if (_items.Count > 1)
+            if (_sourceList.Count > 1)
             {
                 SortComparer = comparer;
                 Sort();
@@ -1113,38 +1413,17 @@ public class SideBySideListSelect : TemplatedControl
 
         #endregion
 
-        #region Protected Methods
-
-        protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
-        {
-            if (!_blockNotifications)
-            {
-                CollectionChanged?.Invoke(this, e);
-            }
-        }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        /// <summary>
-        ///     Called by base class Collection&lt;T&gt; when an item is set in list;
-        ///     raises a CollectionChanged event to any listeners.
-        /// </summary>
-        protected void SetItem(int index, T item)
-        {
-            var originalItem = this[index];
-            _items[index] = item;
-
-            OnIndexerPropertyChanged();
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
-                originalItem, item, index));
-        }
-
-        #endregion
-
         #region Private Methods
+
+        private bool CheckFilter(T item)
+        {
+            if (_filter != null)
+            {
+                return _filter(item);
+            }
+
+            return true;
+        }
 
         private bool CheckSortProp()
         {
@@ -1152,25 +1431,15 @@ public class SideBySideListSelect : TemplatedControl
             {
                 if (_sortProp == null && !string.IsNullOrEmpty(SortKey))
                 {
-                    if (_items.Count == 0)
+                    _sortProp = typeof(T).GetProperty(SortKey, BindingFlags.Public | BindingFlags.Instance);
+                    if (_sortProp != null)
                     {
-                        return false; // No items to check against
-                    }
-
-                    var obj = _items[0];
-
-                    if (obj != null)
-                    {
-                        _sortProp = obj.GetType().GetProperty(SortKey, BindingFlags.Public | BindingFlags.Instance);
-                        if (_sortProp != null)
+                        _sortComparer = Comparer<T>.Create((x, y) =>
                         {
-                            _sortComparer = Comparer<T>.Create((x, y) =>
-                            {
-                                var xValue = _sortProp?.GetValue(x);
-                                var yValue = _sortProp?.GetValue(y);
-                                return Comparer<object>.Default.Compare(xValue, yValue);
-                            });
-                        }
+                            var xValue = _sortProp?.GetValue(x);
+                            var yValue = _sortProp?.GetValue(y);
+                            return Comparer<object>.Default.Compare(xValue, yValue);
+                        });
                     }
                 }
             }
@@ -1178,19 +1447,87 @@ public class SideBySideListSelect : TemplatedControl
             return _sortComparer != null;
         }
 
-        private void OnCollectionReset()
+        private void InternalAddItem(T item)
         {
+            if (_sortComparer != null)
+            {
+                var idx = _sourceList.BinarySearch(item, _sortComparer);
+                if (idx < 0)
+                {
+                    idx = ~idx;
+                }
+
+                _sourceList.Insert(idx, item);
+                if (CheckFilter(item))
+                {
+                    idx = _filteredList.BinarySearch(item, _sortComparer);
+                    if (idx < 0)
+                    {
+                        idx = ~idx;
+                    }
+
+                    _filteredList.Insert(idx, item);
+                }
+            }
+            else
+            {
+                _sourceList.Add(item);
+                if (CheckFilter(item))
+                {
+                    _filteredList.Add(item);
+                }
+            }
+        }
+
+        private bool InternalRemove(T item)
+        {
+            var result = _sourceList.Remove(item);
+            if (CheckFilter(item) && result)
+            {
+                _filteredList.Remove(item);
+            }
+
+            return result;
+        }
+
+        private void NotifyListChanges()
+        {
+            OnCountChanged();
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
-        private void OnCountPropertyChanged()
+        private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            OnPropertyChanged(nameof(Count));
+            if (_blockCount <= 0)
+            {
+                CollectionChanged?.Invoke(this, e);
+            }
         }
 
-        private void OnIndexerPropertyChanged()
+        private void OnCountChanged()
         {
-            OnPropertyChanged("Item[]");
+            OnPropertyChanged(nameof(Count));
+            OnPropertyChanged("Items[]");
+        }
+
+        private void OnPropertyChanged([CallerMemberName] string? propName = null)
+        {
+            if (_blockCount <= 0)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+            }
+        }
+
+        private void RebuildFilteredList()
+        {
+            _filteredList.Clear();
+            foreach (var item in _sourceList)
+            {
+                if (CheckFilter(item))
+                {
+                    _filteredList.Add(item);
+                }
+            }
         }
 
         #endregion
@@ -1199,7 +1536,17 @@ public class SideBySideListSelect : TemplatedControl
 
         public void CopyTo(Array array, int index)
         {
-            CopyTo((T[])array, index);
+            if (array is T[] arr)
+            {
+                if (Filter == null)
+                {
+                    _sourceList.CopyTo(arr, index);
+                }
+                else
+                {
+                    _filteredList.CopyTo(arr, index);
+                }
+            }
         }
 
         #endregion
@@ -1208,43 +1555,33 @@ public class SideBySideListSelect : TemplatedControl
 
         public void Add(T item)
         {
-            _items.Add(item);
-            Sort();
-            OnCountPropertyChanged();
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item,
-                _items.Count - 1));
-        }
-
-        public void Clear()
-        {
-            _items.Clear();
-            OnCountPropertyChanged();
-            OnIndexerPropertyChanged();
-            OnCollectionReset();
+            InternalAddItem(item);
+            OnCountChanged();
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public bool Contains(T item)
         {
-            return _items.Contains(item);
+            return _sourceList.Contains(item);
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            _items.CopyTo(array, arrayIndex);
+            if (Filter == null)
+            {
+                _sourceList.CopyTo(array, arrayIndex);
+            }
+            else
+            {
+                _filteredList.CopyTo(array, arrayIndex);
+            }
         }
 
         public bool Remove(T item)
         {
-            var result = _items.Remove(item);
-            if (result)
-            {
-                Sort();
-                OnCountPropertyChanged();
-                OnIndexerPropertyChanged();
-                OnCollectionChanged(
-                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, -1));
-            }
-
+            var result = InternalRemove(item);
+            OnCountChanged();
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
             return result;
         }
 
@@ -1263,13 +1600,7 @@ public class SideBySideListSelect : TemplatedControl
 
         public IEnumerator<T> GetEnumerator()
         {
-            foreach (var item in _items)
-            {
-                if (item != null && (_filter == null || _filter(item)))
-                {
-                    yield return item;
-                }
-            }
+            return _filter == null ? _sourceList.GetEnumerator() : _filteredList.GetEnumerator();
         }
 
         #endregion
@@ -1278,20 +1609,26 @@ public class SideBySideListSelect : TemplatedControl
 
         public int Add(object? value)
         {
-            if (value is T t)
+            if (value is T item)
             {
-                Add(t);
-                return Count;
+                Add(item);
             }
 
-            return -1;
+            return 0;
+        }
+
+        public void Clear()
+        {
+            _sourceList.Clear();
+            _filteredList.Clear();
+            NotifyListChanges();
         }
 
         public bool Contains(object? value)
         {
             if (value is T item)
             {
-                return _items.Contains(item);
+                return Contains(item);
             }
 
             return false;
@@ -1301,7 +1638,7 @@ public class SideBySideListSelect : TemplatedControl
         {
             if (value is T item)
             {
-                return _items.IndexOf(item);
+                return IndexOf(item);
             }
 
             return -1;
@@ -1311,11 +1648,7 @@ public class SideBySideListSelect : TemplatedControl
         {
             if (value is T item)
             {
-                _items.Insert(index, item);
-                Sort();
-                OnCountPropertyChanged();
-                OnCollectionChanged(
-                    new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+                Add(item);
             }
         }
 
@@ -1329,11 +1662,26 @@ public class SideBySideListSelect : TemplatedControl
 
         public void RemoveAt(int index)
         {
-            var item = _items[index];
-            _items.RemoveAt(index);
-            OnCountPropertyChanged();
-            OnIndexerPropertyChanged();
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, -1));
+            //throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region Implementing IList<T>
+
+        public int IndexOf(T item)
+        {
+            if (_sortComparer != null)
+            {
+                return _filteredList.BinarySearch(item, _sortComparer);
+            }
+
+            return _filteredList.IndexOf(item);
+        }
+
+        public void Insert(int index, T item)
+        {
+            Add(item);
         }
 
         #endregion

@@ -2,45 +2,49 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ab="https://github.com/ajbavalonia">
-    <!--  Add Resources Here  -->
-    <ControlTheme x:Key="{x:Type ab:SideBySideListSelect}" TargetType="{x:Type ab:SideBySideListSelect}">
-        <!--  Set Defaults  -->
-        <Setter Property="HeaderFontStyle" Value="Normal" />
-        <Setter Property="HeaderFontWeight" Value="Normal" />
-        <Setter Property="ListSelectionMode" Value="Multiple" />
-        <Setter Property="Template">
-            <ControlTemplate>
-                <Grid>
-                    <DataValidationErrors>
-                        <Border x:Name="PART_Border"
+	<!--  Add Resources Here  -->
+	<ControlTheme x:Key="{x:Type ab:SideBySideListSelect}" TargetType="{x:Type ab:SideBySideListSelect}">
+		<!--  Set Defaults  -->
+		<Setter Property="HeaderFontStyle" Value="Normal" />
+		<Setter Property="HeaderFontWeight" Value="Normal" />
+		<Setter Property="ListSelectionMode" Value="Multiple" />
+		<Setter Property="ListBoxBorderThickness" Value="1" />
+		<Setter Property="HeaderMargin" Value="2" />
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Grid>
+					<DataValidationErrors>
+						<Border
+                            x:Name="PART_Border"
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}">
-                            <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
-                                <TextBlock
+							<Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+								<TextBlock
                                     Grid.Row="0"
                                     Grid.Column="0"
-                                    Margin="2"
+                                    Margin="{TemplateBinding HeaderMargin}"
                                     VerticalAlignment="Center"
                                     FontStyle="{TemplateBinding HeaderFontStyle}"
                                     FontWeight="{TemplateBinding HeaderFontWeight}"
                                     Text="{TemplateBinding LeftHeaderText}" />
-                                <TextBlock
+								<TextBlock
                                     Grid.Row="0"
                                     Grid.Column="2"
-                                    Margin="2"
+                                    Margin="{TemplateBinding HeaderMargin}"
                                     VerticalAlignment="Center"
                                     FontStyle="{TemplateBinding HeaderFontStyle}"
                                     FontWeight="{TemplateBinding HeaderFontWeight}"
                                     Text="{TemplateBinding RightHeaderText}" />
-                                <StackPanel
+								<StackPanel
                                     Grid.Row="1"
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
                                     Orientation="Vertical">
-                                    <Button x:Name="btnMoveRight"
+									<Button
+                                        x:Name="btnMoveRight"
                                         Width="30"
                                         Height="24"
                                         Margin="2,5"
@@ -49,9 +53,10 @@
                                         Background="Transparent"
                                         BorderBrush="Transparent"
                                         BorderThickness="0">
-                                        &gt;
-                                    </Button>
-                                    <Button x:Name="btnMoveAllRight"
+										&gt;
+									</Button>
+									<Button
+                                        x:Name="btnMoveAllRight"
                                         Width="30"
                                         Height="24"
                                         Margin="2,5"
@@ -60,9 +65,10 @@
                                         Background="Transparent"
                                         BorderBrush="Transparent"
                                         BorderThickness="0">
-                                        &gt;&gt;
-                                    </Button>
-                                    <Button x:Name="btnMoveLeft"
+										&gt;&gt;
+									</Button>
+									<Button
+                                        x:Name="btnMoveLeft"
                                         Width="30"
                                         Height="24"
                                         Margin="2,20,2,5"
@@ -71,9 +77,10 @@
                                         Background="Transparent"
                                         BorderBrush="Transparent"
                                         BorderThickness="0">
-                                        &lt;
-                                    </Button>
-                                    <Button x:Name="btnMoveAllLeft"
+										&lt;
+									</Button>
+									<Button
+                                        x:Name="btnMoveAllLeft"
                                         Width="30"
                                         Height="24"
                                         Margin="2,5"
@@ -82,52 +89,54 @@
                                         Background="Transparent"
                                         BorderBrush="Transparent"
                                         BorderThickness="0">
-                                        &lt;&lt;
-                                    </Button>
-                                </StackPanel>
-                                <ListBox x:Name="LeftList"
+										&lt;&lt;
+									</Button>
+								</StackPanel>
+								<ListBox
+                                    x:Name="LeftList"
                                     Grid.Row="1"
                                     Grid.Column="0"
                                     VerticalAlignment="Stretch"
                                     BorderBrush="{TemplateBinding ListBoxBorderBrush}"
                                     BorderThickness="{TemplateBinding ListBoxBorderThickness}"
                                     SelectionMode="Multiple">
-                                    <ListBox.Styles>
-                                        <Style Selector="ListBoxItem">
-                                            <Setter Property="Padding" Value="4,2" />
-                                        </Style>
-                                    </ListBox.Styles>
-                                </ListBox>
-                                <ListBox x:Name="RightList"
+									<ListBox.Styles>
+										<Style Selector="ListBoxItem">
+											<Setter Property="Padding" Value="4,2" />
+										</Style>
+									</ListBox.Styles>
+								</ListBox>
+								<ListBox
+                                    x:Name="RightList"
                                     Grid.Row="1"
                                     Grid.Column="2"
                                     VerticalAlignment="Stretch"
                                     BorderBrush="{TemplateBinding ListBoxBorderBrush}"
                                     BorderThickness="{TemplateBinding ListBoxBorderThickness}"
                                     SelectionMode="Multiple">
-                                    <ListBox.Styles>
-                                        <Style Selector="ListBoxItem">
-                                            <Setter Property="Padding" Value="4,2" />
-                                        </Style>
-                                    </ListBox.Styles>
-                                </ListBox>
-                            </Grid>
-                        </Border>
-                    </DataValidationErrors>
-                </Grid>
-            </ControlTemplate>
-        </Setter>
-        <Style Selector="^:error">
-            <Style Selector="^[IsLeftToRight=True] /template/ ListBox#RightList">
-                <Setter Property="BorderBrush" Value="Red" />
-                <Setter Property="Background" Value="LightPink" />
-                <Setter Property="BorderThickness" Value="1" />
-            </Style>
-            <Style Selector="^[IsLeftToRight=False] /template/ ListBox#LeftList">
-                <Setter Property="BorderBrush" Value="Red" />
-                <Setter Property="Background" Value="LightPink" />
-                <Setter Property="BorderThickness" Value="1" />
-            </Style>
-        </Style>
-    </ControlTheme>
+									<ListBox.Styles>
+										<Style Selector="ListBoxItem">
+											<Setter Property="Padding" Value="4,2" />
+										</Style>
+									</ListBox.Styles>
+								</ListBox>
+							</Grid>
+						</Border>
+					</DataValidationErrors>
+				</Grid>
+			</ControlTemplate>
+		</Setter>
+		<Style Selector="^:error">
+			<Style Selector="^[IsLeftToRight=True] /template/ ListBox#RightList">
+				<Setter Property="BorderBrush" Value="Red" />
+				<Setter Property="Background" Value="LightPink" />
+				<Setter Property="BorderThickness" Value="1" />
+			</Style>
+			<Style Selector="^[IsLeftToRight=False] /template/ ListBox#LeftList">
+				<Setter Property="BorderBrush" Value="Red" />
+				<Setter Property="Background" Value="LightPink" />
+				<Setter Property="BorderThickness" Value="1" />
+			</Style>
+		</Style>
+	</ControlTheme>
 </ResourceDictionary>
