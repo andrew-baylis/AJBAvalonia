@@ -1,6 +1,6 @@
 ﻿// SideBySideListSelect.cs
 // Andrew Baylis
-// Created: 13/07/2026
+// Created: 14/07/2026
 
 #region using
 
@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using AJBAvalonia.DragDropInternal;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -83,8 +84,8 @@ public class SideBySideListSelect : TemplatedControl
     public static readonly StyledProperty<IDataTemplate?> LeftListTemplateProperty =
         AvaloniaProperty.Register<SideBySideListSelect, IDataTemplate?>(nameof(LeftListTemplate));
 
-    public static readonly StyledProperty<IBrush?> ListBackgroundProperty =
-        AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(ListBackground));
+    public static readonly StyledProperty<IBrush> ListBackgroundProperty =
+        AvaloniaProperty.Register<SideBySideListSelect, IBrush>(nameof(ListBackground), Brushes.LightGray);
 
     public static readonly StyledProperty<IBrush?> ListBoxBorderBrushProperty =
         AvaloniaProperty.Register<SideBySideListSelect, IBrush?>(nameof(ListBoxBorderBrush));
@@ -132,22 +133,22 @@ public class SideBySideListSelect : TemplatedControl
     private string? _displayMemberPath;
 
     // add fields
-    private ListBox? _dragSourceListBox;
-
-    private PointerPressedEventArgs? _dragStartArgs;
-    private Point _dragStartPoint;
-
     private bool _inSelectedItemsChange;
 
     private bool _isLeftToRight = true;
 
     private IEnumerable? _itemsSource;
 
+    private MinimalDragDrop? _leftDragDrop;
+
     private bool _refreshFilter;
+    private MinimalDragDrop? _rightDragDrop;
 
     private IEnumerable? _selectedItems;
 
     private BindingBase? _sortKeyBinding;
+
+    private int idx;
 
     #endregion
 
@@ -294,7 +295,7 @@ public class SideBySideListSelect : TemplatedControl
     /// <summary>
     ///     Gets or sets the background brush for the lists.
     /// </summary>
-    public IBrush? ListBackground
+    public IBrush ListBackground
     {
         get => GetValue(ListBackgroundProperty);
         set => SetValue(ListBackgroundProperty, value);
@@ -493,83 +494,36 @@ public class SideBySideListSelect : TemplatedControl
         CheckCanAddLeftRight();
     }
 
-    private void ListBoxOnDragOver(object? sender, DragEventArgs e)
+    private void ListBoxOnOnDragOver(object? sender, DragDropArgs e)
     {
-        if (sender is not ListBox target || ReferenceEquals(target, _dragSourceListBox))
+        if (sender is ListBox && !ReferenceEquals(e.SourceItem, e.TargetItem))
         {
-            e.DragEffects = DragDropEffects.None;
+            e.DragEffects = AllowCopiesInSelected ? DragDropEffects.Copy : DragDropEffects.Move;
             e.Handled = true;
             return;
         }
 
-        e.DragEffects = AllowCopiesInSelected ? DragDropEffects.Copy : DragDropEffects.Move;
+        e.DragEffects = DragDropEffects.None;
         e.Handled = true;
     }
 
-    private void ListBoxOnDrop(object? sender, DragEventArgs e)
+    private void ListBoxOnOnDrop(object? sender, DragDropArgs e)
     {
-        if (sender is not ListBox target || ReferenceEquals(target, _dragSourceListBox))
+        if (ReferenceEquals(e.SourceItem, e.TargetItem))
         {
             return;
         }
 
-        if (ReferenceEquals(target, LeftListBox))
+        if (ReferenceEquals(e.TargetItem, LeftListBox))
         {
             AddRightToLeftExecute();
         }
-        else if (ReferenceEquals(target, RightListBox))
+        else if (ReferenceEquals(e.TargetItem, RightListBox))
         {
             AddLeftToRightExecute();
         }
 
         e.Handled = true;
-    }
-
-    private async void ListBoxOnPointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (sender is not ListBox lb || lb.SelectedItems?.Count <= 0 || _dragStartArgs is null)
-        {
-            return;
-        }
-
-        if (!e.GetCurrentPoint(lb).Properties.IsLeftButtonPressed)
-        {
-            return;
-        }
-
-        var pos = e.GetPosition(lb);
-        if (Math.Abs(pos.X - _dragStartPoint.X) < 4 &&
-            Math.Abs(pos.Y - _dragStartPoint.Y) < 4)
-        {
-            return;
-        }
-
-        _dragSourceListBox = lb;
-
-        try
-        {
-            await DragDrop.DoDragDropAsync(_dragStartArgs, CreateDragData(), GetDragEffects(_dragStartArgs));
-        }
-        finally
-        {
-            _dragSourceListBox = null;
-            _dragStartArgs = null;
-        }
-    }
-
-    private void ListBoxOnPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is ListBox lb)
-        {
-            _dragStartPoint = e.GetPosition(lb);
-            _dragStartArgs = e;
-        }
-    }
-
-    private void ListBoxOnPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        _dragStartArgs = null;
-        _dragSourceListBox = null;
     }
 
     private void RightListOnDoubleTapped(object? sender, TappedEventArgs e)
@@ -740,18 +694,10 @@ public class SideBySideListSelect : TemplatedControl
     {
         base.OnApplyTemplate(e);
 
-        DetachDragDrop(LeftListBox);
-        DetachDragDrop(RightListBox);
-
         var leftHeader = e.NameScope.Find<TextBlock>("LeftHeader");
         var rightHeader = e.NameScope.Find<TextBlock>("RightHeader");
         LeftListBox = e.NameScope.Find<ListBox>("LeftList");
         RightListBox = e.NameScope.Find<ListBox>("RightList");
-
-        // existing header/list setup...
-
-        AttachDragDrop(LeftListBox);
-        AttachDragDrop(RightListBox);
 
         if (HeaderClasses.Count != 0)
         {
@@ -770,6 +716,7 @@ public class SideBySideListSelect : TemplatedControl
 
         if (LeftListBox != null)
         {
+            _leftDragDrop = AttachDragDrop(LeftListBox);
             LeftListBox.ItemsSource = LeftItems;
             LeftListBox.SelectionChanged += LeftListOnSelectionChanged;
             LeftListBox.DoubleTapped += LeftListOnDoubleTapped;
@@ -777,6 +724,7 @@ public class SideBySideListSelect : TemplatedControl
 
         if (RightListBox != null)
         {
+            _rightDragDrop = AttachDragDrop(RightListBox);
             RightListBox.ItemsSource = RightItems;
             RightListBox.SelectionChanged += RightListOnSelectionChanged;
             RightListBox.DoubleTapped += RightListOnDoubleTapped;
@@ -799,7 +747,6 @@ public class SideBySideListSelect : TemplatedControl
         if (IsLeftToRight)
         {
             LeftItems.SetFilter(InternalFilterItems);
-            LeftItems.CollectionChanged += (o, e) => Debug.WriteLine($"Collection changed: {e.Action}");
         }
         else
         {
@@ -887,29 +834,14 @@ public class SideBySideListSelect : TemplatedControl
 
     #region Private Methods
 
-    private void AttachDragDrop(ListBox? listBox)
+    private MinimalDragDrop AttachDragDrop(ListBox box)
     {
-        if (listBox is null)
-        {
-            return;
-        }
-
-        DragDrop.SetAllowDrop(listBox, true);
-
-        listBox.AddHandler(PointerPressedEvent, ListBoxOnPointerPressed,
-            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-
-        listBox.AddHandler(PointerMovedEvent, ListBoxOnPointerMoved,
-            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-
-        listBox.AddHandler(PointerReleasedEvent, ListBoxOnPointerReleased,
-            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-
-        listBox.AddHandler(DragDrop.DragOverEvent, ListBoxOnDragOver,
-            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
-
-        listBox.AddHandler(DragDrop.DropEvent, ListBoxOnDrop,
-            RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+        var result = new MinimalDragDrop(box);
+        result.IsDragSource = true;
+        result.IsDropTarget = true;
+        result.OnDragOver += ListBoxOnOnDragOver;
+        result.OnDrop += ListBoxOnOnDrop;
+        return result;
     }
 
     private void CheckCanAddLeftRight()
@@ -938,22 +870,6 @@ public class SideBySideListSelect : TemplatedControl
         var data = new DataTransfer();
         data.Add(item);
         return data;
-    }
-
-    private void DetachDragDrop(ListBox? listBox)
-    {
-        if (listBox is null)
-        {
-            return;
-        }
-
-        DragDrop.SetAllowDrop(listBox, false);
-
-        listBox.RemoveHandler(PointerPressedEvent, ListBoxOnPointerPressed);
-        listBox.RemoveHandler(PointerMovedEvent, ListBoxOnPointerMoved);
-        listBox.RemoveHandler(PointerReleasedEvent, ListBoxOnPointerReleased);
-        listBox.RemoveHandler(DragDrop.DragOverEvent, ListBoxOnDragOver);
-        listBox.RemoveHandler(DragDrop.DropEvent, ListBoxOnDrop);
     }
 
     private static DragDropEffects GetDragEffects(PointerPressedEventArgs e)

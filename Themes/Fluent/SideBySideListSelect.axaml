@@ -97,6 +97,7 @@
                                     Grid.Row="1"
                                     Grid.Column="0"
                                     VerticalAlignment="Stretch"
+                                    Background="{TemplateBinding ListBackground}"
                                     BorderBrush="{TemplateBinding ListBoxBorderBrush}"
                                     BorderThickness="{TemplateBinding ListBoxBorderThickness}"
                                     SelectionMode="Multiple">
@@ -111,6 +112,7 @@
                                     Grid.Row="1"
                                     Grid.Column="2"
                                     VerticalAlignment="Stretch"
+                                    Background="{TemplateBinding ListBackground}"
                                     BorderBrush="{TemplateBinding ListBoxBorderBrush}"
                                     BorderThickness="{TemplateBinding ListBoxBorderThickness}"
                                     SelectionMode="Multiple">
