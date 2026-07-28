@@ -31,7 +31,8 @@ public static class VisualExtensions
     public static WindowIcon? ConvertToIcon(this Bitmap bitmap)
     {
         using var stream = new MemoryStream();
-        bitmap.Save(stream);
+        var options = new PngBitmapEncoderOptions();
+        bitmap.Save(stream, options);
         stream.Position = 0;
         return new WindowIcon(stream);
     }

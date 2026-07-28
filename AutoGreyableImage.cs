@@ -177,7 +177,8 @@ public class AutoGreyableImage : Control
             Array.Copy(_greyScale, matrix, 20);
             matrix[18] = greyOpacity;
             using var ms = new MemoryStream();
-            autoGreyScaleImg.Save(ms);
+            var options = new PngBitmapEncoderOptions();
+            autoGreyScaleImg.Save(ms, options);
             ms.Seek(0, SeekOrigin.Begin);
             using var bitmap = SKBitmap.Decode(ms);
             var info = new SKImageInfo((int)autoGreyScaleImg.Size.Width, (int)autoGreyScaleImg.Size.Height);

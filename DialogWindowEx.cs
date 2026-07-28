@@ -85,7 +85,8 @@ public class DialogWindowEx : Window
         if (CaptionBitmap != null)
         {
             using var stream = new MemoryStream();
-            CaptionBitmap.Save(stream);
+            var options = new PngBitmapEncoderOptions();
+            CaptionBitmap.Save(stream, options);
             stream.Position = 0;
             Icon = new WindowIcon(stream);
         }

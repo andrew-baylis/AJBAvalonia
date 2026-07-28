@@ -1016,7 +1016,7 @@ public class CheckComboBoxEx : TemplatedControl
             _selectedItemsControl.DisplayMemberBinding = DisplayMemberBinding;
             _selectedItemsControl.DisplayTextFormatString = SummaryTextFormatString;
             _selectedItemsControl.MaxItemsBeforeDisplayText = MaxSelectedItemsBeforeSummaryText;
-            _selectedItemsControl.ItemTemplate = ItemTemplate;
+            _selectedItemsControl.ItemTemplate = SelectedItemsTemplate??ItemTemplate;
             _needToSetPropertiesOnLoad = false;
         }
     }
