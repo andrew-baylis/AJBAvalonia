@@ -112,6 +112,9 @@
         <Setter Property="FocusAdorner" Value="{x:Null}" />
         <Setter Property="ScrollViewer.IsScrollChainingEnabled" Value="True" />
         <Setter Property="ContextFlyout" Value="{StaticResource DefaultTextBoxContextFlyout}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="SuffixPadding" Value="2" />
+        <Setter Property="InnerLeftPadding" Value="2" />
         <Setter Property="Template">
             <ControlTemplate>
                 <DataValidationErrors>
@@ -185,12 +188,13 @@
                                     </ScrollViewer>
                                 </DockPanel>
                                 <ContentPresenter Grid.Column="2" Content="{TemplateBinding InnerRightContent}" />
-                                <ContentPresenter
+                                <TextPresenter
                                     Grid.Column="3"
                                     Margin="{TemplateBinding SuffixPadding}"
                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                    Content="{TemplateBinding Suffix}" />
+                                    LetterSpacing="{TemplateBinding LetterSpacing}"
+                                    LineHeight="{TemplateBinding LineHeight}"
+                                    Text="{TemplateBinding Suffix}" />
                                 <Button
                                     Name="PART_ClearButton"
                                     Grid.Column="4"
