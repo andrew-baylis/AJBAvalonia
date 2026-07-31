@@ -148,8 +148,6 @@ public class SideBySideListSelect : TemplatedControl
 
     private BindingBase? _sortKeyBinding;
 
-    private int idx;
-
     #endregion
 
     #region Public properties
